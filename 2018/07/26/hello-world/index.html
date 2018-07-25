@@ -58,35 +58,28 @@ Qu...">
           
             <li>
           
-            <a href="/index.html">Home</a>
+            <a href="/">首页</a>
             
           </li>
         
           
             <li>
           
-            <a href="/archives">Archives</a>
+            <a href="/archives">文章</a>
             
           </li>
         
           
             <li>
           
-            <a href="/tags">Tags</a>
+            <a href="/tags">标签</a>
             
           </li>
         
           
             <li>
           
-            <a href="/categories">Categories</a>
-            
-          </li>
-        
-          
-            <li>
-          
-            <a href="/about">About</a>
+            <a href="/categories">分类</a>
             
           </li>
         
@@ -112,11 +105,21 @@ Qu...">
   <article id="post">
     <h1>Hello World</h1>
     <p class="page-title-sub">
-      <span id = "post-title-date">Created at 2018-07-15</span>
+      <span id = "post-title-date">Created at 2018-07-26</span>
       
-        <span id = "post-title-updated">Updated at 2018-07-15</span>
+        <span id = "post-title-updated">Updated at 2018-07-26</span>
       
       
+      
+      <span id = "post-title-tags">
+      Tag
+      
+      
+        
+        
+        <a href="/tags/Markdown/">Markdown</a>
+      
+      </span>
       
     </p>
     
@@ -156,20 +159,36 @@ Qu...">
 
       
       
-    </div>
-  </div>
-
-  <div id="bottom-outer">
-    <div id="bottom-inner">
-      Site by Xion using
-      <a href="http://hexo.io">Hexo</a> & <a href="https://github.com/stiekel/hexo-theme-random">Random</a>
-      <br>
+      <div id="disqus_thread"></div>
       
     </div>
   </div>
 </div>
 
 </div>
+
+  <div id="disqus_thread"></div>
+<script>
+/**
+* RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+* LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+
+s.src = '//xxxxion-com-1.disqus.com/embed.js';
+
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
 
 
 <div id="user-card">
@@ -180,41 +199,9 @@ Qu...">
   
   
     <li>
-      <a href="https://github.com/stiekel/hexo-theme-random">
+      <a href="https://github.com/313183373">
         
           <i class="icon iconfont github">&#xe606;</i>
-        
-      </a>
-    </li>
-  
-    <li>
-      <a href="https://coding.net/u/Stiekel">
-        
-          <i class="icon iconfont coding">&#xe607;</i>
-        
-      </a>
-    </li>
-  
-    <li>
-      <a href="https://twitter.com/SidCN">
-        
-          <i class="icon iconfont twitter">&#xe600;</i>
-        
-      </a>
-    </li>
-  
-    <li>
-      <a href="http://weibo.com/sidcn">
-        
-          <i class="icon iconfont weibo">&#xe602;</i>
-        
-      </a>
-    </li>
-  
-    <li>
-      <a href="http://www.douban.com/people/Stiekel/">
-        
-          <i class="icon iconfont douban">&#xe60f;</i>
         
       </a>
     </li>
@@ -280,8 +267,8 @@ var isTriggerAnalytics = !( true && isIgnoreHost );
   });
   $(".fancybox").fancybox();
 
-var vegasConfig = {"preload­Image":true,"transition":["slideLeft2","slideRight2","flash2"],"timer":true,"delay":5000,"shuffle":true,"count":28};
-var unsplashConfig = {"gravity":"north"};
+var vegasConfig = {"animation":"random","preload­Image":true,"transition":["slideLeft2","slideRight2","flash2"],"timer":true,"delay":3000,"shuffle":true,"count":10};
+var unsplashConfig = {"blur":true,"gravity":"north"};
 // is show background images
 var turnoffBackgroundImage = false;
 
