@@ -1,0 +1,435 @@
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="">
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <meta name="author" content="Xion">
+  
+  
+  
+  
+    <meta name="description" content="RouterReact Router通过Router和Route两个组件完成路由的功能。Router可以理解为路由器，一个应用中只需要一个Router实例，所有路由配置组件Route都定义为Router的子组件。
+在Web应用中，我们一般会使用对Router进行过包装的BrowserRouter或者HashRouter作为路由器。
+BrowserRouter使用HTML5的history A...">
+  
+  <title>开始使用ReactRouter [ 熊鑫的美好生活 ]</title>
+  
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+  <link rel="stylesheet" href="/css/random.css">
+<link rel="stylesheet" href="/css/vegas.min.css">
+<link rel="stylesheet" href="/css/highlight-railscasts.css">
+<link rel="stylesheet" href="/css/jquery.fancybox.css">
+<link rel="stylesheet" href="/css/iconfont/iconfont.css">
+<link rel="stylesheet" href="/css/jquery.fancybox-thumbs.css">
+<link rel="stylesheet" href="/css/plyr.css">
+  
+</head>
+
+<body>
+<div class="side-navigate hide-area">
+  
+  
+    <div class="item next">
+      <a href="/2018/08/10/初识ReactRouter/">
+        <div class="item-icon"></div>
+      </a>
+      <div class="item-title">
+        初识ReactRouter
+      </div>
+    </div>
+  
+</div>
+<div id="outer-container" class="hide-area">
+<div id="container">
+  <div id="menu-outer" class="slide-down">
+    <div id="menu-inner">
+      <div id="brand">
+        
+        <a onClick="openUserCard()">
+          <img id="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg"/>
+          <div id="homelink">熊鑫的美好生活</div>
+        </a>
+      </div>
+      <div id="menu-list">
+        <ul>
+        
+        
+          
+            <li>
+          
+            <a href="/">首页</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/archives">文章</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/tags">标签</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/categories">分类</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="https://github.com/313183373">Github</a>
+            
+          </li>
+        
+        </ul>
+      </div>
+      <div id="show-menu">
+        <button>Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="content-outer">
+    <div id="content-inner">
+      
+      
+  <article id="post">
+    <h1>开始使用ReactRouter</h1>
+    <p class="page-title-sub">
+      <span id = "post-title-date">Created at 2018-08-10</span>
+      
+        <span id = "post-title-updated">Updated at 2018-08-10</span>
+      
+      
+      
+      <span id = "post-title-tags">
+      Tag
+      
+      
+        
+        
+        <a href="/tags/React/">React</a>
+      
+        
+          /
+        
+        
+        <a href="/tags/ReactRouter/">ReactRouter</a>
+      
+      </span>
+      
+    </p>
+    
+    <h3 id="Router"><a href="#Router" class="headerlink" title="Router"></a>Router</h3><p>React Router通过Router和Route两个组件完成路由的功能。Router可以理解为路由器，一个应用中只需要一个Router实例，所有路由配置组件Route都定义为Router的子组件。</p>
+<p>在Web应用中，我们一般会使用对Router进行过包装的BrowserRouter或者HashRouter作为路由器。</p>
+<p>BrowserRouter使用HTML5的history API(pushState、replaceState等)实现应用的UI和URL的同步。HashRouter使用URL的hash实现应用的UI和URL的同步。</p>
+<p>使用BrowserRouter之后的URL形式如下：</p>
+<p><code>http://example.com/some/path</code></p>
+<p>使用HashRouter之后的URL形式如下：</p>
+<p><code>http://example.com/#/some/path</code></p>
+<p>使用BrowserRouter时，我们还要对服务器进行配置，因为我们的URL变化之后，也应该让服务器返回正确的页面，比如：<code>http://example.com/some/path</code>和<code>http://example.com/some/path2</code>，当浏览器接受到这两个请求的时候，应该都是返回同样的HTML页面（也是SPA中唯一一个HTML页面），对于传统的多页面应用来说，这两个URL一般对应两个页面。使用HashRouter就不会存在这样的问题，因为hash部分的信息并不会发送给浏览器，所以<code>http://example.com/#/some/path</code>和<code>http://example.com/#/some/path2</code>发送给服务器之后，对服务器来说都只是<code>http://example.com</code></p>
+<p>使用Router之后，会创建一个<code>history</code>对象，history对象用来跟踪URL，当URL发送变化的时候，Router的后代组件会从新渲染。React Router 中提供的其他组件可以通过<code>context</code>获取<code>history</code>对象，这也隐含说明了React Router中的其他组件必须作为Router组件的后代使用。</p>
+<p>Router中只能有一个子元素：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 正确</span></span><br><span class="line">ReactDOM.render((</span><br><span class="line">	&lt;BrowserRouter&gt;</span><br><span class="line">		&lt;App /&gt;</span><br><span class="line">	&lt;<span class="regexp">/BrowserRouter&gt;</span></span><br><span class="line"><span class="regexp">), document.getElementById('root'));</span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ 错误 Router中包含两个元素</span></span><br><span class="line"><span class="regexp">ReactDOM.render((</span></span><br><span class="line"><span class="regexp">	&lt;BrowserRouter&gt;</span></span><br><span class="line"><span class="regexp">		&lt;App1 /</span>&gt;</span><br><span class="line">		&lt;App2 /&gt;</span><br><span class="line">	&lt;<span class="regexp">/BrowserRouter&gt;</span></span><br><span class="line"><span class="regexp">), document.getElementById('root'))</span></span><br></pre></td></tr></table></figure>
+<h3 id="Route"><a href="#Route" class="headerlink" title="Route"></a>Route</h3><p>Route是React Route中用于配制路由信息的组件，也是React Router中使用频率最高的组件。每当有一个组件需要根据URL决定是否渲染时，就需要创建一个Route。</p>
+<ol>
+<li><p>path（Route的属性）</p>
+<p>每个Route都需要一个<code>path</code>属性，当使用BrowserRouter时，<code>path</code>用来表示这个Route匹配的<code>URL</code>的<code>pathname</code>；当使用HashRouter时，<code>path</code>用来表示这个Route匹配的<code>URL</code>的<code>hash</code>。</p>
+<p>例如：在BrowserRouter下使用<code>&lt;Route path=&#39;/foo&#39;&gt;</code>会匹配一个<code>pathname</code>是<code>foo</code>的<code>URL</code>如：<code>http://example.com/foo</code>；在HashRouter下使用则会匹配到<code>http://example.com/#/foo</code></p>
+<p>当Route匹配成功后，Route对应的组件就会渲染出来（除非我们使用children属性渲染组件）。</p>
+</li>
+<li><p>match（Route给待渲染组件的<code>props</code>）</p>
+<p>当URL匹配成功后，Route会创建一个<code>match</code>对象作为<code>props</code>传递给被渲染的组件，所以被渲染的组件可以根据URL来做相应的变化。</p>
+<p>match对象有以下4个属性：</p>
+<ol>
+<li><p>params:Route的<code>path</code>可以包含参数，例如<code>&lt;Route path=&#39;/user/:id&#39;/&gt;</code>包含一个参数<code>id</code>，通过params属性我们就可以获取到这个参数的值，从而让组件作出不同的表现。</p>
+</li>
+<li><p>isExact:是一个<code>bool</code>值，当URL完全匹配时，值为<code>true</code>;当URL部分匹配时，值为<code>false</code></p>
+<p>例如：当URL是<code>http://example.com/foo</code>，path是<code>/foo</code>时，是完全匹配，而当URL是<code>http://example.com/foo/1</code>时，就是部分匹配</p>
+</li>
+<li><p>path：Route的path属性，构建嵌套路由时会使用到</p>
+</li>
+<li><p>url：URL的匹配部分。</p>
+</li>
+</ol>
+</li>
+<li><p>Route渲染组件的方式</p>
+<p>讲了这么多，我们还没有讲Route匹配的组件怎么渲染出来。</p>
+<p>有三个属性都可以用来渲染组件，三种属性提供了不同的功能</p>
+<ul>
+<li><p>component</p>
+<p>component的值是一个组件，当<code>URL</code>和<code>Route</code>匹配时，component属性定义的组件就会被渲染。</p>
+<p>例如：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;Route path=<span class="string">'/foo'</span> component=&#123;Foo&#125;&gt;</span><br></pre></td></tr></table></figure>
+<p>当<code>URL=&#39;http://example.com/foo&#39;</code>时，Foo组件就会被渲染出来。</p>
+</li>
+<li><p>render</p>
+<p>render的值是一个函数，这个函数返回一个React元素。这种方式可以方便地为待渲染的组件传递额外的属性。</p>
+<p>例如：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;Route path=<span class="string">'/foo'</span> render=&#123;(props) =&gt; (</span><br><span class="line">	&lt;Foo &#123;...props&#125; data=&#123;extraProps&#125; /&gt;</span><br><span class="line">)&#125;&gt;</span><br></pre></td></tr></table></figure>
+<p>像这样，除了本来要传递的参数之外(match,location,history)，还可以传递一些额外的参数</p>
+</li>
+<li><p>children</p>
+<p>children的值也是一个函数，跟render类似，区别在于无论这个Route是否匹配成功，children函数返回的组件都会被渲染。但是，不匹配时，传递的match对象是null。</p>
+<p>例如：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;Route path=<span class="string">'/foo'</span> children=&#123;(props) =&gt; (</span><br><span class="line">	&lt;div className=&#123;props.match ? <span class="string">'active'</span> : <span class="string">''</span>&#125;&gt;</span><br><span class="line">		&lt;Foo &#123;...props&#125;/&gt;</span><br><span class="line">	&lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">)&#125;&gt;</span></span><br></pre></td></tr></table></figure>
+<p>如果Route成功匹配的话，<code>div</code>的<code>class</code>就是<code>active</code>，反之没有。</p>
+</li>
+</ul>
+</li>
+</ol>
+<p>好了，学习了如何渲染组件之后，我们得亲自试试，不然还是不是很放心。</p>
+<p>我现在想验证的事情有</p>
+<ol>
+<li>当Route匹配成功之后，传递给组件的props中会多什么东西(虽然已经说了有match对象，但是我们得看看是否还有多的属性)？</li>
+<li>验证match对象有什么属性，这个在第一个验证的同时可以知道。</li>
+<li>render函数和children函数中的<code>props</code>有哪些内容？</li>
+</ol>
+<p>好了，有几个想知道的事情之后，我们就开始写代码验证吧。</p>
+<p>先写了一个简单的Route，验证传递给组件的props有哪些内容</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// index.js</span></span><br><span class="line">ReactDOM.render(</span><br><span class="line">    &lt;BrowserRouter&gt;</span><br><span class="line">        &lt;Route path=<span class="string">'/user/:id'</span> component=&#123;User&#125;/&gt;</span><br><span class="line">    &lt;<span class="regexp">/BrowserRouter&gt;</span></span><br><span class="line"><span class="regexp">    , document.getElementById('root'));</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// User.js</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> (props) =&gt; &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123;match&#125; = props;</span><br><span class="line">    <span class="built_in">console</span>.log(props);</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        &lt;div&gt;User ID : &#123;match.params.id&#125;&lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">    )</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>我们直接打印了<code>props</code>，访问<code>localhost:3000/user/123</code>看看吧</p>
+<p><img src="https://ws2.sinaimg.cn/large/0069RVTdgy1fu4r24jvu6j310a062abu.jpg" alt="image-20180810174901224"></p>
+<p>我们可以看到除了<code>match</code>对象，还有HTML5的<code>history</code>对象，然后还有一个<code>location</code>对象。并且我们看到了它们内部具体的含义。</p>
+<p>好了，第一条和第二条都知道了</p>
+<p>现在看第三条，我们把Route渲染组件的方式变化一下，变为<code>render</code>，然后让<code>props</code>打印出来</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ReactDOM.render(</span><br><span class="line">    &lt;BrowserRouter&gt;</span><br><span class="line">        &lt;Route path=<span class="string">'/user/:id'</span> render=&#123;(props) =&gt; &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(props);</span><br><span class="line">            <span class="keyword">return</span> &lt;User &#123;...props&#125;/&gt;</span><br><span class="line">        &#125;&#125;/&gt;</span><br><span class="line">    &lt;/BrowserRouter&gt;</span><br><span class="line">    , <span class="built_in">document</span>.getElementById(<span class="string">'root'</span>));</span><br></pre></td></tr></table></figure>
+<p>把<code>User</code>组件中打印的都删掉</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> (&#123;match&#125;) =&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        &lt;div&gt;User ID : &#123;match.params.id&#125;&lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">    )</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>然后我们还是访问<code>localhost:3000/user/123</code></p>
+<p><img src="https://ws3.sinaimg.cn/large/0069RVTdgy1fu4r7vzsbqj312s05qjt2.jpg" alt="image-20180810175435525"></p>
+<p>可以看到<code>props</code>跟传递给组件的<code>props</code>一模一样，看来我们使用<code>render</code>或者<code>children</code>传递参数的时候，一定得把<code>props</code>传递过去，不然被渲染的组件是不会有那些<code>props</code>的 。</p>
+<p>验证完毕，现在我们总结一下我们的发现，Route组件在URL匹配成功之后，会传递给组件三个属性，一个是最常用的<code>match</code>，这个属性我们一般可以用它的<code>params</code>属性来获取URL中的参数，然后可以用<code>path</code>属性来做嵌套路由，用<code>isExact</code>判断是否完全匹配。</p>
+<p>OK，接下来我们继续看另一个组件，Switch组件，看到这个组件的名字想起来了什么？没错，就是我们很多变成语言都会有的<code>switch</code>语句，那么大家可想而知，这个组件的作用和switch语句的作用也是类似的。</p>
+<p>当URL与多个Route匹配的时候，那么匹配的Route对应的组件都会渲染出来。有时候我们只想渲染第一个匹配的，那么我们就可以使用Switch组件，把Route组件包起来，这样Switch组件中的Route组件只有第一个匹配的才会渲染。</p>
+<p>Switch组件往往和另一个东西一起使用，就是Route组件中的<code>exact</code>属性，我们之前没有提到这个exact属性，是为了在这里和Switch组件配合起来，大家印象会更加深刻。</p>
+<p><code>exact</code>属性不需要给值，只要写了这个属性，就表明是<code>true</code>，没写就表明是<code>false</code>。比如：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;Route path=<span class="string">'/foo'</span> exact component=&#123;Foo&#125;/&gt;</span><br></pre></td></tr></table></figure>
+<p>表示只有URL严格是/foo时，Foo组件才会渲染，没有<code>exact</code>属性的话，当URL是/foo/1的时候，Foo组件也会渲染。</p>
+<p>其实我们也可以不要这个<code>exact</code>属性，因为Route会给组件传递参数嘛，我们可以利用<code>match</code>对象中的<code>isExact</code>属性来判断是否完全匹配，不完全匹配就返回null，就不会渲染了。有了这个属性更加方便了</p>
+<p>好了，说了这么多，我们来用Switch和exact属性来完成一个很常见的使用场景。</p>
+<p>我们需要做一个导航条，当URL为/的时候，就渲染Home(首页)组件，当URL是/posts，就渲染Posts(文章列表)组件，当URL为/:user时，就渲染User(用户)组件，现在我们想想该如何实现。</p>
+<p>首先我们肯定可以得给每个需要根据URL渲染的组件写Route，写Route得先有个Router，好的，我们先写一下</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;BrowserRouter&gt;</span><br><span class="line">	&lt;Route path=<span class="string">'/'</span> component=&#123;Home&#125;/&gt;</span><br><span class="line">	&lt;Route path=<span class="string">'/posts'</span> component=&#123;Posts&#125;/&gt;</span><br><span class="line">	&lt;Route path=<span class="string">'/:user'</span> component=&#123;User&#125;/&gt;</span><br><span class="line">&lt;<span class="regexp">/BrowserRouter&gt;</span></span><br></pre></td></tr></table></figure>
+<p>然后我们的其他的组件就简单处理</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Home.js</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span>  () =&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> &lt;h1&gt;Home Component&lt;/h1&gt;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// User.js</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> (&#123;match&#125;) =&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        &lt;div&gt;User ID : &#123;match.params.user&#125;&lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">    )</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Posts.js</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> () =&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        &lt;h1&gt;Post Components&lt;<span class="regexp">/h1&gt;</span></span><br><span class="line"><span class="regexp">    )</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>我们先就这样运行一下，发现报错，为什么呢？我们忘记了一个比较容易忘记的点，就是一个Router组件只能有<strong>唯一</strong>的一个子元素</p>
+<p>一般我们会用一个div把这些组件包起来，有时候我们不想多一些这些无意义的节点。现在React有了一个新的特性，<a href="https://react.docschina.org/docs/fragments.html" target="_blank" rel="noopener">React Fragments</a>，我们用React.Fragment组件代替那个div，它不会渲染任何多余的节点</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;BrowserRouter&gt;</span><br><span class="line">	&lt;React.Fragment&gt;</span><br><span class="line">		&lt;Route path=<span class="string">'/'</span> component=&#123;Home&#125;/&gt;</span><br><span class="line">		&lt;Route path=<span class="string">'/posts'</span> component=&#123;Posts&#125;/&gt;</span><br><span class="line">		&lt;Route path=<span class="string">'/:user'</span> component=&#123;User&#125;/&gt;</span><br><span class="line">	&lt;<span class="regexp">/React.Fragment&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>BrowserRouter&gt;</span><br></pre></td></tr></table></figure>
+<p>好了，现在可以看下效果，访问/，一些正常，</p>
+<p><img src="https://ws4.sinaimg.cn/large/0069RVTdgy1fu50abcgstj30gs05eq30.jpg" alt="image-20180810230819188"></p>
+<p>渲染了首页组件，然后我们访问/123</p>
+<p><img src="https://ws3.sinaimg.cn/large/0069RVTdgy1fu50apx5xdj30i80860sz.jpg" alt="image-20180810230842581"></p>
+<p>发现了一点问题，首页组件和User组件都渲染了，这是我们不想看到的，我们本意是只要User组件渲染的，这个时候我们想到了<code>exact</code>属性，当URL完全匹配/的时候首页组件渲染就行了。好的，我们改改</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;BrowserRouter&gt;</span><br><span class="line">	&lt;React.Fragment&gt;</span><br><span class="line">		&lt;Route path=<span class="string">'/'</span> exact component=&#123;Home&#125;/&gt;</span><br><span class="line">		&lt;Route path=<span class="string">'/posts'</span> component=&#123;Posts&#125;/&gt;</span><br><span class="line">		&lt;Route path=<span class="string">'/:user'</span> component=&#123;User&#125;/&gt;</span><br><span class="line">	&lt;<span class="regexp">/React.Fragment&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>BrowserRouter&gt;</span><br></pre></td></tr></table></figure>
+<p>好了，这个时候我们发现访问/123时，只有User 组件渲染了，很棒。</p>
+<p><img src="https://ws3.sinaimg.cn/large/0069RVTdgy1fu50czst3wj305o01w747.jpg" alt="image-20180810231054077"></p>
+<p>然后我们访问/posts</p>
+<p><img src="https://ws2.sinaimg.cn/large/0069RVTdgy1fu50f5o69oj30hq06q3yr.jpg" alt="image-20180810231258634"></p>
+<p>发现Posts组件和User组件都渲染了，这也是我们不想看到的，这个时候我们就得用Switch组件了，因为就优先级来说的话，Posts组件是优先于User组件的，也就是说当URL为/posts时，虽然/posts和/:user都匹配，但是应该是只有/posts对应的组件渲染，所以我们使用Switch组件，并且把/posts的路由(Route)放在/:user的前面</p>
+<p>我们改一改</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;BrowserRouter&gt;</span><br><span class="line">	&lt;Switch&gt;</span><br><span class="line">		&lt;Route path=<span class="string">'/'</span> exact component=&#123;Home&#125;/&gt;</span><br><span class="line">		&lt;Route path=<span class="string">'/posts'</span> component=&#123;Posts&#125;/&gt;</span><br><span class="line">		&lt;Route path=<span class="string">'/:user'</span> component=&#123;User&#125;/&gt;</span><br><span class="line">	&lt;<span class="regexp">/Switch&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>BrowserRouter&gt;</span><br></pre></td></tr></table></figure>
+<p>我们有了Switch组件之后，Router组件下就是一个子元素了，就把React.Fragment组件去掉就好了。</p>
+<p>这样之后，访问/posts</p>
+<p><img src="https://ws1.sinaimg.cn/large/0069RVTdgy1fu50jailvyj30hs05mdfy.jpg" alt="image-20180810231656863"></p>
+<p>终于是我们想要的样子了。</p>
+<p>好了，React Router我们也算是入门了，下一小节我们会继续介绍更多的React Router的使用方法。</p>
+<h2 id="参考资料："><a href="#参考资料：" class="headerlink" title="参考资料："></a>参考资料：</h2><p><a href="https://book.douban.com/subject/30210697/" target="_blank" rel="noopener">React 进阶之路</a></p>
+
+  </article>
+  <div class="random-toc-area">
+  <button class="btn-hide-toc btn-hide-toc-show" style="display: none" onclick="TOCToggle()">Show TOC</button>
+  <button class="btn-hide-toc btn-hide-toc-hide" onclick="TOCToggle()">Hide TOC</button>
+  <div class="random-toc">
+    <h2>Table of Content</h2>
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Router"><span class="toc-text">Router</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Route"><span class="toc-text">Route</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考资料："><span class="toc-text">参考资料：</span></a>
+  </div>
+</div>
+
+  
+<nav id="pagination">
+  
+
+  
+
+  
+    <a href="/2018/08/10/初识ReactRouter/" class="next">Next post 初识ReactRouter &rarr;</a>
+  
+</nav>
+
+  <!-- JiaThis Button BEGIN -->
+
+<!-- JiaThis Button END -->
+
+
+      
+      
+      
+      <!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zODM1Ny8xNDg4NQ==">
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<div id="user-card">
+  <div class="center-field">
+    <img class="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg">
+    <p id="description"></p>
+    <ul class="social-icon">
+  
+  
+</ul>
+  </div>
+</div>
+
+
+<div id="btn-view">Hide</div>
+
+<script>
+// is trigger analytics / tongji script
+var isIgnoreHost = false;
+
+if(window && window.location && window.location.host) {
+  isIgnoreHost = ["localhost","127.0.0.1"].some(function(address){
+    return 0 === window.location.host.indexOf(address);
+  });
+}
+
+var isTriggerAnalytics = !( true && isIgnoreHost );
+
+</script>
+
+
+
+
+  
+  
+    <script src="/js/jquery-2.2.3.min.js"></script>
+  
+    <script src="/js/vegas.min.js"></script>
+  
+    <script src="/js/random.js"></script>
+  
+    <script src="/js/highlight.pack.js"></script>
+  
+    <script src="/js/jquery.mousewheel.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox-thumbs.js"></script>
+  
+    <script src="/js/plyr.js"></script>
+  
+
+<script>
+
+  // fancybox
+  var backgroundImages = [];
+  
+  $('#post').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox') || $(this).parent().hasClass('fancybox-thumb')) return;
+      var alt = this.alt || this.title;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'post' + i);
+    });
+  });
+  $(".fancybox").fancybox();
+
+var vegasConfig = {"animation":"random","preload­Image":true,"transition":["slideLeft2","slideRight2","zoomIn","swirLeft","swirRight","flash","flash2"],"timer":true,"delay":5000,"shuffle":true,"count":10};
+var unsplashConfig = {"gravity":"north"};
+// is show background images
+var turnoffBackgroundImage = false;
+
+
+
+  turnoffBackgroundImage = true;
+
+
+var backgroundColor = "34495E";
+
+$(".fancybox-thumb").fancybox({
+  prevEffect: 'none',
+  nextEffect: 'none',
+  helpers: {
+    title: {
+      type: 'outside'
+    },
+    thumbs: {
+      width: 50,
+      height: 50
+    }
+  }
+});
+
+// show video with plyr
+$(".video-container iframe").each(function(i){
+  var url = $(this).attr('src');
+  var id = url.split('/').pop();
+  var plyrContainer = document.createElement('div');
+  plyrContainer.className = 'plyr';
+  var plyrElement = document.createElement('div');
+  plyrElement.dataset.videoId = id;
+  switch(true) {
+    case url.search('youtube.com') >= 0:
+      plyrElement.dataset.type = 'youtube';
+      break;
+    case url.search('vimeo.com') >= 0:
+      plyrElement.dataset.type = 'vimeo';
+      break;
+    default:
+      return;
+  };
+  plyrContainer.appendChild(plyrElement);
+  $(this).parent().html(plyrContainer);
+});
+plyr.setup('.plyr', {iconUrl: '/css/sprite.svg'});
+</script>
+</body>
+</html>
+
