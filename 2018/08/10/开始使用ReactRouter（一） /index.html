@@ -16,9 +16,13 @@
   
   
   
-    <meta name="description" content="RouterReact Router通过Router和Route两个组件完成路由的功能。Router可以理解为路由器，一个应用中只需要一个Router实例，所有路由配置组件Route都定义为Router的子组件。
-在Web应用中，我们一般会使用对Router进行过包装的BrowserRouter或者HashRouter作为路由器。
-BrowserRouter使用HTML5的history A...">
+    <meta name="description" content="为了让大家对React Router有一个更加整体的认识，我们先介绍一下React Router中的一些基础组件，React Router中有三种基础组件，它们分别是：
+
+Router components
+Route matching components
+navigation components
+
+RouterReact Router通过Router和Route两个组件完成路由的功能。...">
   
   <title>开始使用ReactRouter [ 熊鑫的美好生活 ]</title>
   
@@ -110,6 +114,7 @@ BrowserRouter使用HTML5的history A...">
 
   <div id="content-outer">
     <div id="content-inner">
+      <div id="Jihuajiyi" style="display:none"></div>
       
       
   <article id="post">
@@ -117,7 +122,7 @@ BrowserRouter使用HTML5的history A...">
     <p class="page-title-sub">
       <span id = "post-title-date">Created at 2018-08-10</span>
       
-        <span id = "post-title-updated">Updated at 2018-08-10</span>
+        <span id = "post-title-updated">Updated at 2018-08-11</span>
       
       
       
@@ -139,21 +144,27 @@ BrowserRouter使用HTML5的history A...">
       
     </p>
     
-    <h3 id="Router"><a href="#Router" class="headerlink" title="Router"></a>Router</h3><p>React Router通过Router和Route两个组件完成路由的功能。Router可以理解为路由器，一个应用中只需要一个Router实例，所有路由配置组件Route都定义为Router的子组件。</p>
+    <p>为了让大家对React Router有一个更加整体的认识，我们先介绍一下React Router中的一些基础组件，React Router中有三种基础组件，它们分别是：</p>
+<ul>
+<li>Router components</li>
+<li>Route matching components</li>
+<li>navigation components</li>
+</ul>
+<h3 id="Router"><a href="#Router" class="headerlink" title="Router"></a>Router</h3><p>React Router通过Router和Route两个组件完成路由的功能。Router可以理解为路由器，一个应用中只需要一个Router实例，所有路由配置组件Route都定义为Router的子组件。</p>
 <p>在Web应用中，我们一般会使用对Router进行过包装的BrowserRouter或者HashRouter作为路由器。</p>
 <p>BrowserRouter使用HTML5的history API(pushState、replaceState等)实现应用的UI和URL的同步。HashRouter使用URL的hash实现应用的UI和URL的同步。</p>
 <p>使用BrowserRouter之后的URL形式如下：</p>
 <p><code>http://example.com/some/path</code></p>
 <p>使用HashRouter之后的URL形式如下：</p>
 <p><code>http://example.com/#/some/path</code></p>
-<p>使用BrowserRouter时，我们还要对服务器进行配置，因为我们的URL变化之后，也应该让服务器返回正确的页面，比如：<code>http://example.com/some/path</code>和<code>http://example.com/some/path2</code>，当浏览器接受到这两个请求的时候，应该都是返回同样的HTML页面（也是SPA中唯一一个HTML页面），对于传统的多页面应用来说，这两个URL一般对应两个页面。使用HashRouter就不会存在这样的问题，因为hash部分的信息并不会发送给浏览器，所以<code>http://example.com/#/some/path</code>和<code>http://example.com/#/some/path2</code>发送给服务器之后，对服务器来说都只是<code>http://example.com</code></p>
+<p>使用BrowserRouter时，我们还要对服务器进行配置，因为我们的URL变化之后，也应该让服务器返回正确的页面，比如：<code>http://example.com/some/path</code>和<code>http://example.com/some/path2</code>，当浏览器接受到这两个请求的时候，应该都是返回同样的HTML页面（也是SPA中唯一一个HTML页面），对于传统的多页面应用来说，这两个URL一般对应两个页面。使用HashRouter就不会存在这样的问题，因为hash部分的信息并不会发送给浏览器，所以<code>http://example.com/#/some/path</code>和<code>http://example.com/#/some/path2</code>发送给服务器之后，对服务器来说都只是<code>http://example.com</code>，一般来说，当我们有一个后端的时候，我们使用BrowserRouter，如果我们只是有一个静态文件服务器的话，就使用HashRouter</p>
 <p>使用Router之后，会创建一个<code>history</code>对象，history对象用来跟踪URL，当URL发送变化的时候，Router的后代组件会从新渲染。React Router 中提供的其他组件可以通过<code>context</code>获取<code>history</code>对象，这也隐含说明了React Router中的其他组件必须作为Router组件的后代使用。</p>
 <p>Router中只能有一个子元素：</p>
 <figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 正确</span></span><br><span class="line">ReactDOM.render((</span><br><span class="line">	&lt;BrowserRouter&gt;</span><br><span class="line">		&lt;App /&gt;</span><br><span class="line">	&lt;<span class="regexp">/BrowserRouter&gt;</span></span><br><span class="line"><span class="regexp">), document.getElementById('root'));</span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ 错误 Router中包含两个元素</span></span><br><span class="line"><span class="regexp">ReactDOM.render((</span></span><br><span class="line"><span class="regexp">	&lt;BrowserRouter&gt;</span></span><br><span class="line"><span class="regexp">		&lt;App1 /</span>&gt;</span><br><span class="line">		&lt;App2 /&gt;</span><br><span class="line">	&lt;<span class="regexp">/BrowserRouter&gt;</span></span><br><span class="line"><span class="regexp">), document.getElementById('root'))</span></span><br></pre></td></tr></table></figure>
 <h3 id="Route"><a href="#Route" class="headerlink" title="Route"></a>Route</h3><p>Route是React Route中用于配制路由信息的组件，也是React Router中使用频率最高的组件。每当有一个组件需要根据URL决定是否渲染时，就需要创建一个Route。</p>
 <ol>
 <li><p>path（Route的属性）</p>
-<p>每个Route都需要一个<code>path</code>属性，当使用BrowserRouter时，<code>path</code>用来表示这个Route匹配的<code>URL</code>的<code>pathname</code>；当使用HashRouter时，<code>path</code>用来表示这个Route匹配的<code>URL</code>的<code>hash</code>。</p>
+<p>每个Route都需要一个<code>path</code>属性，当使用BrowserRouter时，<code>path</code>用来表示这个Route匹配的<code>URL</code>的<code>pathname</code>；当使用HashRouter时，<code>path</code>用来表示这个Route匹配的<code>URL</code>的<code>hash</code>。如果没有<code>path</code>属性，那么这个Route会永远匹配</p>
 <p>例如：在BrowserRouter下使用<code>&lt;Route path=&#39;/foo&#39;&gt;</code>会匹配一个<code>pathname</code>是<code>foo</code>的<code>URL</code>如：<code>http://example.com/foo</code>；在HashRouter下使用则会匹配到<code>http://example.com/#/foo</code></p>
 <p>当Route匹配成功后，Route对应的组件就会渲染出来（除非我们使用children属性渲染组件）。</p>
 </li>
@@ -256,6 +267,10 @@ BrowserRouter使用HTML5的history A...">
 <p><img src="https://ws1.sinaimg.cn/large/0069RVTdgy1fu50jailvyj30hs05mdfy.jpg" alt="image-20180810231656863"></p>
 <p>终于是我们想要的样子了。</p>
 <p>好了，React Router我们也算是入门了，下一小节我们会继续介绍更多的React Router的使用方法。</p>
+<p>当大家对于React Router的API有任何疑问的话，可以去React Router的官方文档查看详细的解释，而且官方文档中也有一些知道教程和用例。</p>
+<p><a href="https://reacttraining.com/react-router/web/guides/philosophy" target="_blank" rel="noopener">英文官网</a></p>
+<p><a href="https://react-router.docschina.org/web/guides/philosophy" target="_blank" rel="noopener">中文官网</a></p>
+<p>暂时还不确定中文官网是不是和英文的保持一致，不过中文的是翻译过来的，有的地方也许翻译的并不是很妥善。</p>
 <h2 id="参考资料："><a href="#参考资料：" class="headerlink" title="参考资料："></a>参考资料：</h2><p><a href="https://book.douban.com/subject/30210697/" target="_blank" rel="noopener">React 进阶之路</a></p>
 
   </article>
@@ -306,6 +321,7 @@ BrowserRouter使用HTML5的history A...">
 </div>
 <!-- City版安装代码已完成 -->
       
+      <script src="http://open.iciba.com/huaci/huaci.js" ></script>
     </div>
   </div>
 </div>
