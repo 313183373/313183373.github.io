@@ -239,7 +239,7 @@ RouterReact Router通过Router和Route两个组件完成路由的功能。...">
 <p>表示只有URL严格是/foo时，Foo组件才会渲染，没有<code>exact</code>属性的话，当URL是/foo/1的时候，Foo组件也会渲染。</p>
 <p>其实我们也可以不要这个<code>exact</code>属性，因为Route会给组件传递参数嘛，我们可以利用<code>match</code>对象中的<code>isExact</code>属性来判断是否完全匹配，不完全匹配就返回null，就不会渲染了。有了这个属性更加方便了</p>
 <p>好了，说了这么多，我们来用Switch和exact属性来完成一个很常见的使用场景。</p>
-<p>我们需要做一个导航条，当URL为/的时候，就渲染Home(首页)组件，当URL是/posts，就渲染Posts(文章列表)组件，当URL为/:user时，就渲染User(用户)组件，现在我们想想该如何实现。</p>
+<p>我们需要做一个导航条的路由，当URL为/的时候，就渲染Home(首页)组件，当URL是/posts，就渲染Posts(文章列表)组件，当URL为/:user时，就渲染User(用户)组件，现在我们想想该如何实现。</p>
 <p>首先我们肯定可以得给每个需要根据URL渲染的组件写Route，写Route得先有个Router，好的，我们先写一下</p>
 <figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;BrowserRouter&gt;</span><br><span class="line">	&lt;Route path=<span class="string">'/'</span> component=&#123;Home&#125;/&gt;</span><br><span class="line">	&lt;Route path=<span class="string">'/posts'</span> component=&#123;Posts&#125;/&gt;</span><br><span class="line">	&lt;Route path=<span class="string">'/:user'</span> component=&#123;User&#125;/&gt;</span><br><span class="line">&lt;<span class="regexp">/BrowserRouter&gt;</span></span><br></pre></td></tr></table></figure>
 <p>然后我们的其他的组件就简单处理</p>
@@ -266,6 +266,8 @@ RouterReact Router通过Router和Route两个组件完成路由的功能。...">
 <p>这样之后，访问/posts</p>
 <p><img src="https://ws1.sinaimg.cn/large/0069RVTdgy1fu50jailvyj30hs05mdfy.jpg" alt="image-20180810231656863"></p>
 <p>终于是我们想要的样子了。</p>
+<h3 id="导航"><a href="#导航" class="headerlink" title="导航"></a>导航</h3><p>React Router提供了一个<code>&lt;Link&gt;</code>组件用于导航，就像<code>&lt;a&gt;</code>标签一样，其实我们用<code>&lt;Link&gt;</code>组件的时候，可以看看，在HTML中渲染的就是一个<code>&lt;a&gt;</code>标签。</p>
+<p>还有一个<code>&lt;NavLink&gt;</code>标签，从名字上就可以看出来它是一类在<code>&lt;Link&gt;</code>的基础上改进的，当这个<code>&lt;NavLink&gt;</code>是激活状态的时候，你可以指定他的<code>style</code>或者<code>class</code>。</p>
 <p>好了，React Router我们也算是入门了，下一小节我们会继续介绍更多的React Router的使用方法。</p>
 <p>当大家对于React Router的API有任何疑问的话，可以去React Router的官方文档查看详细的解释，而且官方文档中也有一些知道教程和用例。</p>
 <p><a href="https://reacttraining.com/react-router/web/guides/philosophy" target="_blank" rel="noopener">英文官网</a></p>
@@ -279,7 +281,7 @@ RouterReact Router通过Router和Route两个组件完成路由的功能。...">
   <button class="btn-hide-toc btn-hide-toc-hide" onclick="TOCToggle()">Hide TOC</button>
   <div class="random-toc">
     <h2>Table of Content</h2>
-    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Router"><span class="toc-text">Router</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Route"><span class="toc-text">Route</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考资料："><span class="toc-text">参考资料：</span></a>
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#Router"><span class="toc-text">Router</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Route"><span class="toc-text">Route</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#导航"><span class="toc-text">导航</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考资料："><span class="toc-text">参考资料：</span></a>
   </div>
 </div>
 
