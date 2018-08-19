@@ -1,0 +1,432 @@
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="">
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <meta name="author" content="Xion">
+  
+  
+  
+  
+    <meta name="description" content="引言在上一小节中，我们学习了Redux中的一些概念，我们已经可以简单的使用Redux了，现在我们需要学习一个令Redux更加强大的一个特性——Redux中间件。
+什么是Redux中间件？我们先看看Redux的作者Dan Abramov如何描述中间件的:
+
+“It provides a third-party extension point between dispatching  an ac...">
+  
+  <title>Redux中间件和异步操作 [ 熊鑫的美好生活 ]</title>
+  
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+  <link rel="stylesheet" href="/css/random.css">
+<link rel="stylesheet" href="/css/vegas.min.css">
+<link rel="stylesheet" href="/css/highlight-railscasts.css">
+<link rel="stylesheet" href="/css/jquery.fancybox.css">
+<link rel="stylesheet" href="/css/iconfont/iconfont.css">
+<link rel="stylesheet" href="/css/jquery.fancybox-thumbs.css">
+<link rel="stylesheet" href="/css/plyr.css">
+  
+</head>
+
+<body>
+<div class="side-navigate hide-area">
+  
+  
+    <div class="item next">
+      <a href="/2018/08/15/Redux-combineReducers源码分析/">
+        <div class="item-icon"></div>
+      </a>
+      <div class="item-title">
+        Redux-combineReducers源码分析
+      </div>
+    </div>
+  
+</div>
+<div id="outer-container" class="hide-area">
+<div id="container">
+  <div id="menu-outer" class="slide-down">
+    <div id="menu-inner">
+      <div id="brand">
+        
+        <a onClick="openUserCard()">
+          <img id="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg"/>
+          <div id="homelink">熊鑫的美好生活</div>
+        </a>
+      </div>
+      <div id="menu-list">
+        <ul>
+        
+        
+          
+            <li>
+          
+            <a href="/">首页</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/archives">文章</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/tags">标签</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/categories">分类</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="https://github.com/313183373">Github</a>
+            
+          </li>
+        
+        </ul>
+      </div>
+      <div id="show-menu">
+        <button>Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="content-outer">
+    <div id="content-inner">
+      <div id="Jihuajiyi" style="display:none"></div>
+      
+      
+  <article id="post">
+    <h1>Redux中间件和异步操作</h1>
+    <p class="page-title-sub">
+      <span id = "post-title-date">Created at 2018-08-17</span>
+      
+        <span id = "post-title-updated">Updated at 2018-08-19</span>
+      
+      
+      
+      <span id = "post-title-tags">
+      Tag
+      
+      
+        
+        
+        <a href="/tags/Redux/">Redux</a>
+      
+      </span>
+      
+    </p>
+    
+    <h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><p>在上一小节中，我们学习了Redux中的一些概念，我们已经可以简单的使用Redux了，现在我们需要学习一个令Redux更加强大的一个特性——Redux中间件。</p>
+<h1 id="什么是Redux中间件？"><a href="#什么是Redux中间件？" class="headerlink" title="什么是Redux中间件？"></a>什么是Redux中间件？</h1><p>我们先看看Redux的作者Dan Abramov如何描述中间件的:</p>
+<blockquote>
+<p>“It provides a third-party extension point between dispatching  an action, and the moment it reaches the reducer.”</p>
+</blockquote>
+<p>我简单的翻译一下，就是它提供一个在发出一个action和action到达reducer之间的第三方拓展点。</p>
+<p>我们通过这段描述，大概可以知道中间件是在发出一个action<code>(dispatch(action))</code>和action到达reducer之间起作用的，确实是一个“中间件“。</p>
+<h1 id="为什么需要中间件？"><a href="#为什么需要中间件？" class="headerlink" title="为什么需要中间件？"></a>为什么需要中间件？</h1><p>要知道为什么需要中间件，这往往是为了解决某些问题才提出的，所以我们直接通过一个问题来切入。</p>
+<p>这个问题就是，我想打印每一个action的信息进行程序的调试，就是说我想每次dispatch一个action之后，我能够看到我发出的是什么action，以及对state造成了什么影响。这个功能，我们怎么实现呢？</p>
+<p>我们先回想一下dispatch之后会发生什么，dispatch一个action之后，dispatch函数内部会把action交给reducer，然后reducer会返回一个新的state，然后dispatch函数会通知监听器。</p>
+<p>我们之前通过监听器可以在每次dispatch之后打印state的值，但是我们不能够获取到action是什么，这不符合我们的要求，那怎么办？</p>
+<p>如果要获取action，我们似乎只能够修改dispatch的函数定义了，我们得在action传递给reducer之前，打印出action的信息。</p>
+<p>有的小伙伴可能会问了，dispatch不是createStore自动生成的吗，我们没法改定义，确实，我们没有办法修改，但是我们可以自己重写一个dispatch函数，然后在这个函数内部，当我们对这个action做了一些处理之后，再调用原来的dispatch函数。</p>
+<p>好了，有了这个思路，我们开始实践一波，就在我们之前写的那个计数器的例子中，写一个新的dispatch函数，完成我们需求</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123;createStore&#125; = <span class="built_in">require</span>(<span class="string">'redux'</span>);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">reducer</span>(<span class="params">state = &#123;number: <span class="number">0</span>&#125;, action</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">switch</span> (action.type) &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">'ADD'</span>:</span><br><span class="line">            <span class="keyword">return</span> &#123;...state, <span class="attr">number</span>: state.number + action.number&#125;;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">'DES'</span>:</span><br><span class="line">            <span class="keyword">return</span> &#123;...state, <span class="attr">number</span>: state.number - action.number&#125;;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            <span class="keyword">return</span> state;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span>(<span class="params">number = <span class="number">1</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        type: <span class="string">'ADD'</span>,</span><br><span class="line">        number</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">des</span>(<span class="params">number = <span class="number">1</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        type: <span class="string">'DES'</span>,</span><br><span class="line">        number</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> store = createStore(reducer);</span><br><span class="line"><span class="comment">// 先把原来的dispatch函数保存起来，我们还要用的</span></span><br><span class="line"><span class="keyword">const</span> next = store.dispatch;</span><br><span class="line"><span class="comment">// 重新写一个dispatch函数，让我们可以打印action，然后打印出state改变</span></span><br><span class="line"><span class="comment">// 之后的值</span></span><br><span class="line">store.dispatch = <span class="function"><span class="keyword">function</span> (<span class="params">action</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'Dispatch:'</span>, action);</span><br><span class="line">    next(action);</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'new state:'</span>, store.getState());</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">store.dispatch(add());</span><br><span class="line">store.dispatch(add(<span class="number">5</span>));</span><br><span class="line">store.dispatch(des());</span><br><span class="line">store.dispatch(add());</span><br><span class="line">store.dispatch(des());</span><br></pre></td></tr></table></figure>
+<p>看起来不错，我们运行一下看看效果。<img src="https://ws4.sinaimg.cn/large/006tNbRwgy1fucu6j2kwuj30l40bodhz.jpg" alt="image-20180817174134183"></p>
+<p>这就符合我们的需求了，我们也可以清晰的看到Redux中state的变化，方便我们调试。</p>
+<p>从这里我们发现我们好像不需要中间件了哦，但是，当我们的需求增加之后，比如：我们需要计算出dispatch函数处理这个action所消耗的时间。我们又得修改我们自创的dispatch了，这显然不符合可持续发展战略。</p>
+<p>我们需要的是一个可以组合的，自由插拔的插件机制，所以Redux借鉴了Koa（用于构建Web应用的Node.js框架）的middleware的思想。所以Redux的中间件就是为了增强dispatch而出现的。</p>
+<p>相信大家应该知道为什么需要中间件了。</p>
+<h1 id="想法是好的，但是如何实现？"><a href="#想法是好的，但是如何实现？" class="headerlink" title="想法是好的，但是如何实现？"></a>想法是好的，但是如何实现？</h1><p>恕我能力有限，我没有想到一个好的方法实现这个要求，不过我们知道，Redux的作者是借鉴了Koa的middleware的思想的。我们可以看看Koa中的middleware是如何运行的，有助于我们理解Redux的中间件。</p>
+<h2 id="Koa中的middleware"><a href="#Koa中的middleware" class="headerlink" title="Koa中的middleware"></a>Koa中的middleware</h2><p><img src="http://ommpd2lnj.bkt.clouddn.com/onion.png" alt=""></p>
+<p>这是经典的Koa洋葱模型，简单的说，Koa应用程序的所有功能几乎都是中间件提供的。中间件的工作方式类似于堆栈。上图中的每一层都是一个中间件，我们可以看到首先Request经过了最外面一层Registry Manager中间件，然后经过Status Code Redirect中间件，最后到Pylons App中间件，然后又从里向外出去，就跟栈的先进后出(FILO first-in-last-out)一样。</p>
+<p>这个时候我们回头看刚才我们改造的dispatch方法：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">store.dispatch = <span class="function"><span class="keyword">function</span> (<span class="params">action</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'Dispatch:'</span>, action);</span><br><span class="line">    next(action);<span class="comment">//特意把原来dispatch的名字取为next</span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'new state:'</span>, store.getState());</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>这个像那个洋葱吗？相信有灵性的同学可以很快反应过来，特别像对吧。</p>
+<p>我来给大家画一个图，大家看看像不像：</p>
+<p><img src="https://ws3.sinaimg.cn/large/006tNbRwgy1fud2co6wiwj30a40e8aah.jpg" alt=""></p>
+<p>画的很简陋，具体的意思就是首先action会经过我们自创的这个dispatch，其实我们这里已经可以叫它为一个中间件，然后我们处理完之后，也就是打印了action之后，我们交给下一个中间件处理，下一个中间件是什么？在这里，就是原始的dispatch，当然有多个中间件的时候，下一个不会是dispatch，总之dispatch就是最核心的一层，我们可以把dispatch也理解为一个中间件，它是最里面一层，经过它处理之后，就应该返还控制权了，也就是从里到外一层一层出来。在这个具体的例子中，当从里到外出来的时候，我们还打印了一下新的state，这两行代码，都属于我们自创的那个中间件中。</p>
+<p>看到这里，大家应该对redux中间件是如何工作的有了一定的了解了，下面我们讲讲Redux中具体是如何实现这个中间件的。</p>
+<h2 id="Redux中间件机制"><a href="#Redux中间件机制" class="headerlink" title="Redux中间件机制"></a>Redux中间件机制</h2><p>要理解Redux的中间件机制，我们得先从一个函数开始，这个函数就是Redux库中提供的applyMiddleware函数，这是添加中间件用的函数，我们来看看它的源码，有很多英文注释，能够看懂是最好，博客中也有爱词霸的翻译插件，不会的可以立马翻译。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> compose <span class="keyword">from</span> <span class="string">'./compose'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Creates a store enhancer that applies middleware to the dispatch method</span></span><br><span class="line"><span class="comment"> * of the Redux store. This is handy for a variety of tasks, such as expressing</span></span><br><span class="line"><span class="comment"> * asynchronous actions in a concise manner, or logging every action payload.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * See `redux-thunk` package as an example of the Redux middleware.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Because middleware is potentially asynchronous, this should be the first</span></span><br><span class="line"><span class="comment"> * store enhancer in the composition chain.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Note that each middleware will be given the `dispatch` and `getState` functions</span></span><br><span class="line"><span class="comment"> * as named arguments.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @param &#123;...Function&#125; middlewares The middleware chain to be applied.</span></span><br><span class="line"><span class="comment"> * @returns &#123;Function&#125; A store enhancer applying the middleware.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> <span class="title">applyMiddleware</span>(<span class="params">...middlewares</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="params">createStore</span> =&gt;</span> (...args) =&gt; &#123;</span><br><span class="line">    <span class="keyword">const</span> store = createStore(...args)</span><br><span class="line">    <span class="keyword">let</span> dispatch = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(</span><br><span class="line">        <span class="string">`Dispatching while constructing your middleware is not allowed. `</span> +</span><br><span class="line">          <span class="string">`Other middleware would not be applied to this dispatch.`</span></span><br><span class="line">      )</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> middlewareAPI = &#123;</span><br><span class="line">      getState: store.getState,</span><br><span class="line">      dispatch: <span class="function">(<span class="params">...args</span>) =&gt;</span> dispatch(...args)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">const</span> chain = middlewares.map(<span class="function"><span class="params">middleware</span> =&gt;</span> middleware(middlewareAPI))</span><br><span class="line">    dispatch = compose(...chain)(store.dispatch)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      ...store,</span><br><span class="line">      dispatch</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>不懂 =&gt;或者(…args)是什么的，可以先看看<a href="http://es6.ruanyifeng.com/#docs/function#箭头函数" target="_blank" rel="noopener">箭头函数</a>和<a href="http://es6.ruanyifeng.com/#docs/array#扩展运算符" target="_blank" rel="noopener">拓展运算符</a></p>
+</blockquote>
+<p>代码其实不多，但是非常精炼，我们先简单的看一下，这个函数的参数是一堆middleware，然后返回值我们从注释中可以看到是store enhancer，从代码上看，是一个函数，返回值又是一个函数，这个形式大家之前看到过，但是看到的那个时候，还不知道Redux中间件，所以不会有印象，这里给大家重新提一下，在createStore的源码中，有这么一段话</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// enhance有定义但是不是函数，说明使用错误，报错</span></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">typeof</span> enhancer !== <span class="string">'undefined'</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">typeof</span> enhancer !== <span class="string">'function'</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'Expected the enhancer to be a function.'</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// enhancer有定义而且是函数，说明有中间件，这里就使用中间件</span></span><br><span class="line">  <span class="comment">// 不知道中间件是什么可以先不用管，先看后面</span></span><br><span class="line">  <span class="keyword">return</span> enhancer(createStore)(reducer, preloadedState)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>意思就是如果enhancer有定义，并且是一个函数的话，就<code>enhancer(createStore)(reducer, preloadedState)</code>，是不是跟<code>applymiddlewares</code>函数返回的函数那个形式一样，因为这里调用的就是<code>applymiddlewares</code>返回的函数。</p>
+<p>所以我们知道<code>applymiddlewares</code>这个函数应该在哪里用了吧，没错，就是在使用<code>createStore</code>函数的时候，就像这样，假如我们有一个logger的中间件</p>
+<p><code>const store = createStore(reducer, applymiddleware(logger));</code></p>
+<p>就是这么用的。</p>
+<p>这么说了之后，大家就可以把<code>createStore</code>的源码和<code>applymiddleware</code>的源码连在一起了，说白了就是<code>applymiddleware</code>函数返回一个<code>enhancer</code>，然后<code>createStore</code>去调用它。</p>
+<p>然后我们继续看<code>applymiddleware</code>的源码，我们看这个<code>enhancer</code>是干嘛的，它首先创建了一个<code>store</code>，定义了一个<code>dispatch</code>方法，然后经过一系列操作，返回了一个对象，这个对象有<code>store</code>的所有属性，然后覆盖了<code>dispatch</code>属性，同学们，这是什么意思？</p>
+<p>这个意思就是说，<code>enhancer</code>就是把原来的<code>createStore</code>执行了一下，得到了<code>store</code>，然后重新定义了一个<code>dispatch</code>方法，然后覆盖<code>store</code>原有的<code>dispatch</code>方法，然后返回了，再问大家，<code>enhancer</code>和普通的<code>createStore</code>(指没有中间件的)有什么区别呀，其实就是多了一个覆盖<code>dispatch</code>方法的区别，这就是我们上面所说到的改造<code>dispatch</code>方法，只不过这个改造的方法很巧妙。</p>
+<p>继续看<code>applymiddleware</code>源码，我们看改造<code>dispatch</code>这一部分</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> middlewareAPI = &#123;</span><br><span class="line">    getState: store.getState,</span><br><span class="line">    dispatch: <span class="function">(<span class="params">...args</span>) =&gt;</span> dispatch(...args)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> chain = middlewares.map(<span class="function"><span class="params">middleware</span> =&gt;</span> middleware(middlewareAPI))</span><br><span class="line">dispatch = compose(...chain)(store.dispatch)</span><br><span class="line"><span class="keyword">return</span> &#123;</span><br><span class="line">    ...store,</span><br><span class="line">    dispatch</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先生成了一个<code>middlewareAPI</code>对象，这个对象有两个属性，<code>getState</code>和<code>dispatch</code>方法，<code>getState</code>方法就是<code>store</code>的<code>getState</code>的方法，然而<code>dispatch</code>方法有点意思，这里先不讨论，往下看。</p>
+<p>下面是一个<code>chain</code>数组，是由传入的一堆<code>middleware</code>调用之后的返回值组成的，调用的参数就是<code>middlewareAPI</code>对象，返回值是什么呢？我们得看一个中间件的源码才知道，不着急，我们先把这个看完。</p>
+<p>然后就是最关键的一步了，<code>dispatch = compose(...chain)(store.dispatch)</code>，就是在这里我们修改了<code>dispatch</code>函数，中间件加入到了<code>dispatch</code>函数中。</p>
+<p>想要完全理解这一步，我们得先看<code>compose</code>函数是什么，简单的说，<code>compose</code>函数就是函数式编程中的组合函数，它的参数是一个函数数组<code>[f1, f2, ..., fn]</code>，返回值是一个新的函数，这里通过举例来让大家明白<code>compose</code>函数的返回值，假如n是3，也就是<code>compose</code>函数的参数是<code>[f1, f2, f3]</code>，那么返回值就是<code>(...arg) =&gt; f1(f2(f3(...args)))</code>也就是把参数中的函数嵌套在一起调用。把前一个函数的返回值当做后一个函数的参数使用。</p>
+<p><code>compose</code>函数的源码如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> <span class="title">compose</span>(<span class="params">...funcs</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (funcs.length === <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="params">arg</span> =&gt;</span> arg</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 其实这里不需要判断一个函数的情况，下面reduce方法在数组只有一个值的</span></span><br><span class="line">  <span class="comment">// 时候会返回那个值，不会执行回调函数</span></span><br><span class="line">  <span class="keyword">if</span> (funcs.length === <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> funcs[<span class="number">0</span>]</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 这是精髓</span></span><br><span class="line">  <span class="keyword">return</span> funcs.reduce(<span class="function">(<span class="params">a, b</span>) =&gt;</span> (...args) =&gt; a(b(...args)))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>不考虑特殊情况的话，这个函数用一句话就可以写出来了，特别的精炼。用<code>reduce</code>方法，把所有的<code>funcs</code>变成一个函数，这个函数层层调用里面的方法，非常的妙。</p>
+<p>所以，经过了<code>dispatch = compose(...chain)(store.dispatch)</code>这一步之后，<code>dispatch</code>函数变成了<code>f1(f2(f3(store.dispatch)))</code>(还是以n=3为例)，我们就把<code>store.dispatch</code>叫做原始dispatch吧，当我们调用<code>dispatch(action)</code>之后，会先经过<code>f1</code>,<code>f2</code>,<code>f3</code>层层处理之后，最后到达最原始的<code>dispatch</code>方法，然后又一层一层退出来，这不就完成了中间件的机制吗。</p>
+<p>当我看完这源码的时候，觉得这个中间件的处理太妙了。</p>
+<p>闲话不多说，还有几个疑惑没有消除，就是那个<code>middlewareAPI</code>对象的<code>dispatch</code>属性为什么要那样写，为什么不直接设定为<code>store.dispatch</code>函数，以及中间件到底是怎么写的。</p>
+<p>要搞清楚这些，我们得看一个实际的中间件是怎么写的。</p>
+<p>我们就以我们之前的那个需求为例，就是每次<code>dispatch</code>一个<code>action</code>之后，需要打印<code>action</code>是什么，以及新<code>state</code>的值是什么，先看看我们原来是怎么写的</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">store.dispatch = <span class="function"><span class="keyword">function</span> (<span class="params">action</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'Dispatch:'</span>, action);</span><br><span class="line">    next(action);<span class="comment">//特意把原来dispatch的名字取为next</span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'new state:'</span>, store.getState());</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>其中<code>next</code>是原始<code>dispatch</code>。</p>
+<p>然后看看对应的中间件如何写:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> logger = <span class="function"><span class="params">store</span> =&gt;</span> next =&gt; <span class="function"><span class="params">action</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'Dispatch: '</span>, action);</span><br><span class="line">    next(action);</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'new state: '</span>, store.getState());</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>不看第一行的话，发现跟原来的好像呀🤪。然后看了第一行，发现，这是什么玩意？怎么这么多层函数。我们每一层每一层的看，第一层函数，参数是<code>store</code>，返回值是一个函数，要想知道<code>store</code>是什么，我们想想看什么时候我们第一次调用<code>middleware</code>，就是我刚才让大家不要着急看的地方：<code>const chain = middlewares.map(middleware =&gt; middleware(middlewareAPI))</code></p>
+<p>这个地方用<code>map</code>让每个<code>middleware</code>都调用了一次，参数就是那个<code>middlewareAPI</code>，好了，我们知道<code>store</code>就是<code>middlewareAPI</code>了。<code>chain</code>就是一堆返回的函数组成的数组。然后何时调用了这个返回的函数呢？</p>
+<p>就在<code>compose</code>函数中，它把这些函数一个一个嵌套起来，所以我们知道<code>next</code>其实就是后面的中间件，当然在最后一个中间件中，<code>next</code>指的是原始<code>dispatch</code>函数。</p>
+<p>最后当我们调用<code>dispatch</code>的时候，最后一层函数被调用，参数自然是<code>action</code>。</p>
+<p>现在我们知道每个参数的意义了，但是有一个奇怪的地方，不知道同学们发现没有，就是在我们写的logger中间件中，<code>store</code>这个参数是没有被使用过的，我们知道<code>store</code>这个参数就是<code>middlewareAPI</code>，说到<code>middlewareAPI</code>，有一个问题我们还没有解决，我们先解决这个问题，就是之前提到过的，<code>middlewareAPI</code>的<code>dispatch</code>属性是这么写的</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    dispatch: <span class="function">(<span class="params">action</span>) =&gt;</span> dispatch(action)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>同学们可能会觉得多此一举，为什么不是</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    dispatch: dispatch</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我来举个例子大家就知道了：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 先定义一个dispatch函数</span></span><br><span class="line"><span class="keyword">let</span> dispatch = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'old dispatch'</span>);</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 然后定义middlewareAPI</span></span><br><span class="line"><span class="keyword">const</span> middlewareAPI = &#123;</span><br><span class="line">    dispatch : dispatch</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 然后修改dispatch函数</span></span><br><span class="line">dispatch = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'new dispatch'</span>);</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 然后使用middlewareAPI的dispatch</span></span><br><span class="line">middlewareAPI.dispatch();</span><br></pre></td></tr></table></figure>
+<p>这个例子的运行结果是</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">old dispatch</span><br></pre></td></tr></table></figure>
+<p>然后我们换一个写法，只改变<code>middlewareAPI</code>中的<code>dispatch</code>属性的定义，其他的不变</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> middlewareAPI = &#123;</span><br><span class="line">    dispatch : <span class="function"><span class="params">()</span> =&gt;</span> dispatch()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后再运行一次，结果是</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new dispatch</span><br></pre></td></tr></table></figure>
+<p>好了，大家看到区别了，反应过来了吗？正是因为我们后来修改了<code>dispatch</code>函数，同时我们也要保证每个<code>middleware</code>中的<code>dispatch</code>是最新的，所以我们这么写，保证<code>dispatch</code>在每个<code>middleware</code>中相同且最新。</p>
+<p>这么写其实有点惰性求值的味道，就是当需要用到的时候，才会去找<code>dispatch</code>的定义。</p>
+<p>好的，我们又解决了一个问题，还剩下最后一个，<code>store</code>(<code>middlewareAPI</code>)参数的使用，我们费了半天劲，给每个<code>middleware</code>提供了一个<code>middlewareAPI</code>，但是这个<code>logger</code>中间件却没有使用到，因为确实是不需要，这个中间件太简单了🤪，下面我们看看如何发挥中间件的真正威力。</p>
+<p>利用中间件，我们可以实现Redux的异步操作。</p>
+<h1 id="Redux-异步流"><a href="#Redux-异步流" class="headerlink" title="Redux 异步流"></a>Redux 异步流</h1><p>在简单的redux的使用过程中，都是同步的操作，就像之前写的那个计数器，每次<code>dispatch</code>一个<code>action</code>，<code>store</code>马上变化。能不能够让它延迟一会(模拟异步操作)再变呢？</p>
+<blockquote>
+<p>这是一个很普通的需求，别的小伙伴也曾经在stackoverflow上问过，Dan Abramov(Redux作者)<a href="https://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559" target="_blank" rel="noopener">亲自回答了这个问题</a>，回答的非常好，有条不紊，    强烈推荐大家去看看。</p>
+</blockquote>
+<p>如果想要延迟一会发送的话，最简单的就是使用setTimeout函数等待一段时间发送。就拿之前写的那个计数器为例，写一个1秒后加1的函数：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">addAsync</span>(<span class="params">number = <span class="number">1</span></span>) </span>&#123;</span><br><span class="line">    setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        store.dispatch(add(number));</span><br><span class="line">    &#125;, <span class="number">1000</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以后我们使用addAsync就是异步了，我们看看如何使用：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">store.dispatch(add(<span class="number">2</span>));</span><br><span class="line">addAsync(<span class="number">3</span>);</span><br><span class="line">store.dispatch(add(<span class="number">2</span>));</span><br></pre></td></tr></table></figure>
+<p>原有的action依旧可以使用，然后使用addAsync完成异步操作，配合我们之前写的logger中间件调试，我们可以方便的看到dispatch被调用的情况以及state的变化，如下：</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tNbRwgy1fuetksth1pj30mi07g0u0.jpg" alt="image-20180819105147615"></p>
+<p>我们没有使用什么额外的中间件，也确实满足了我们的需要。但是有几个点，我们得注意到，<code>addAsync</code>函数中使用到了<code>store.dispatch</code>，但是在实际的React应用中，组件内部是很难获取到<code>dispatch</code>的，所以组件内部其实是通过参数来传递<code>dispatch</code>的，所以这个函数得把<code>dispatch</code>作为一个参数。另外使用<code>addAsync</code>函数跟我们直接使用<code>store.dispatch(action)</code>的形式不同，这会让人产生误解，最好我们也能够<code>store.dispatch(specialAction)</code>，这里的<code>specialAction</code>就是指的是需要异步的<code>action</code>，而不是传统的字面量对象的<code>action</code>。</p>
+<p>所以，一般简单的异步操作，我们确实是不需要什么额外的中间件，但是，当你发现你的异步操作过于复杂，难以处理的时候，那就是你需要使用专门处理异步的中间件的时候了。</p>
+<p>下面给大家介绍Redux Thunk中间件。</p>
+<h2 id="Redux-Thunk"><a href="#Redux-Thunk" class="headerlink" title="Redux Thunk"></a>Redux Thunk</h2><p>Redux Thunk中间件让dispatch知道如何处理一些特殊的aciton，这些特殊的action不是字面量对象，而是一个函数，我们先<code>npm install redux-thunk</code>加入这个库。</p>
+<p>然后直接使用一下，更加直观：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> thunk = <span class="built_in">require</span>(<span class="string">'redux-thunk'</span>).default;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="keyword">const</span> store = createStore(reducer, applyMiddleware(thunk,logger));</span><br></pre></td></tr></table></figure>
+<p>添加这个中间件，然后我们把原来的<code>addAsync</code>这个函数改一改，变成一个返回函数的action creator：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">addAsync</span>(<span class="params">number = <span class="number">1</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="params">dispatch</span> =&gt;</span> &#123;</span><br><span class="line">        setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">            dispatch(add(number));</span><br><span class="line">        &#125;, <span class="number">1000</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后试试能不能用：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">store.dispatch(add());</span><br><span class="line">store.dispatch(addAsync(<span class="number">3</span>));</span><br><span class="line">store.dispatch(add(<span class="number">5</span>));</span><br><span class="line">store.dispatch(des());</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws3.sinaimg.cn/large/006tNbRwgy1fuev3vz2w0j30m4090tae.jpg" alt="image-20180819114447747"></p>
+<p>有用！我们的dispatch函数可以接受一个函数作为action了，神奇吗？它有什么魔法？</p>
+<p>我们看看redux-thunk的源码就知道了</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createThunkMiddleware</span>(<span class="params">extraArgument</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function">(<span class="params">&#123; dispatch, getState &#125;</span>) =&gt;</span> next =&gt; <span class="function"><span class="params">action</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">typeof</span> action === <span class="string">'function'</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> action(dispatch, getState, extraArgument);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> next(action);</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>不要怕，就这么点，首先要判断出是函数的action，如果是函数，就执行它，并且把<code>dispatch,getState,extraArgument</code>作为函数的参数，这就解释了<code>middlewareAPI</code>中为什么要给<code>dispatch</code>了，因为异步<code>action</code>的时候，会用到。如果是普通的<code>action</code>，就交给下一个中间件处理。就是这么简单，没有任何魔法，注意如果<code>action</code>是函数，它不会把这个action传递下去。</p>
+<p>我们再看看没有解释的addAsync函数：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">addAsync</span>(<span class="params">number = <span class="number">1</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="params">dispatch</span> =&gt;</span> &#123;</span><br><span class="line">        setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">            dispatch(add(number));</span><br><span class="line">        &#125;, <span class="number">1000</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其实redux-thunk中间件就是传递给这个函数<code>dispatch</code>方法，让它自己需要的时候发出一个普通的<code>action</code>就可以了。</p>
+<p>我们还是用那个洋葱图来解释异步action的流程。</p>
+<p>当action是普通的字面量对象的时候，是这个流程：</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNbRwgy1fuewh12x6bj30eu0hsdgu.jpg" alt=""></p>
+<p>当action是函数的时候：</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tNbRwgy1fuewm3rn26j30eu0hsq45.jpg" alt=""></p>
+<p>注意redux-thunk把是函数的action给“吞”了，然后这个函数的action可以发出新的action。</p>
+<p>看到这里，相信大家对redux的中间件和异步操作都已经掌握了。</p>
+<p>那么问大家一个问题，一般logger中间件是放在最后的，为什么？看懂了的同学肯定能够答得出来。</p>
+
+  </article>
+  <div class="random-toc-area">
+  <button class="btn-hide-toc btn-hide-toc-show" style="display: none" onclick="TOCToggle()">Show TOC</button>
+  <button class="btn-hide-toc btn-hide-toc-hide" onclick="TOCToggle()">Hide TOC</button>
+  <div class="random-toc">
+    <h2>Table of Content</h2>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#引言"><span class="toc-text">引言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#什么是Redux中间件？"><span class="toc-text">什么是Redux中间件？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#为什么需要中间件？"><span class="toc-text">为什么需要中间件？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#想法是好的，但是如何实现？"><span class="toc-text">想法是好的，但是如何实现？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Koa中的middleware"><span class="toc-text">Koa中的middleware</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Redux中间件机制"><span class="toc-text">Redux中间件机制</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redux-异步流"><span class="toc-text">Redux 异步流</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Redux-Thunk"><span class="toc-text">Redux Thunk</span></a></li></ol></li></ol>
+  </div>
+</div>
+
+  
+<nav id="pagination">
+  
+
+  
+
+  
+    <a href="/2018/08/15/Redux-combineReducers源码分析/" class="next">Next post Redux-combineReducers源码分析 &rarr;</a>
+  
+</nav>
+
+  <!-- JiaThis Button BEGIN -->
+
+<!-- JiaThis Button END -->
+
+
+      
+      
+      
+      <!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zODM1Ny8xNDg4NQ==">
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+      
+      <script src="http://open.iciba.com/huaci/huaci.js" ></script>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<div id="user-card">
+  <div class="center-field">
+    <img class="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg">
+    <p id="description"></p>
+    <ul class="social-icon">
+  
+  
+</ul>
+  </div>
+</div>
+
+
+<div id="btn-view">Hide</div>
+
+<script>
+// is trigger analytics / tongji script
+var isIgnoreHost = false;
+
+if(window && window.location && window.location.host) {
+  isIgnoreHost = ["localhost","127.0.0.1"].some(function(address){
+    return 0 === window.location.host.indexOf(address);
+  });
+}
+
+var isTriggerAnalytics = !( true && isIgnoreHost );
+
+</script>
+
+
+
+
+  
+  
+    <script src="/js/jquery-2.2.3.min.js"></script>
+  
+    <script src="/js/vegas.min.js"></script>
+  
+    <script src="/js/random.js"></script>
+  
+    <script src="/js/highlight.pack.js"></script>
+  
+    <script src="/js/jquery.mousewheel.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox-thumbs.js"></script>
+  
+    <script src="/js/plyr.js"></script>
+  
+
+<script>
+
+  // fancybox
+  var backgroundImages = [];
+  
+  $('#post').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox') || $(this).parent().hasClass('fancybox-thumb')) return;
+      var alt = this.alt || this.title;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'post' + i);
+    });
+  });
+  $(".fancybox").fancybox();
+
+var vegasConfig = {"animation":"random","preload­Image":true,"transition":["slideLeft2","slideRight2","zoomIn","swirLeft","swirRight","flash","flash2"],"timer":true,"delay":5000,"shuffle":true,"count":10};
+var unsplashConfig = {"gravity":"north"};
+// is show background images
+var turnoffBackgroundImage = false;
+
+
+
+  turnoffBackgroundImage = true;
+
+
+var backgroundColor = "34495E";
+
+$(".fancybox-thumb").fancybox({
+  prevEffect: 'none',
+  nextEffect: 'none',
+  helpers: {
+    title: {
+      type: 'outside'
+    },
+    thumbs: {
+      width: 50,
+      height: 50
+    }
+  }
+});
+
+// show video with plyr
+$(".video-container iframe").each(function(i){
+  var url = $(this).attr('src');
+  var id = url.split('/').pop();
+  var plyrContainer = document.createElement('div');
+  plyrContainer.className = 'plyr';
+  var plyrElement = document.createElement('div');
+  plyrElement.dataset.videoId = id;
+  switch(true) {
+    case url.search('youtube.com') >= 0:
+      plyrElement.dataset.type = 'youtube';
+      break;
+    case url.search('vimeo.com') >= 0:
+      plyrElement.dataset.type = 'vimeo';
+      break;
+    default:
+      return;
+  };
+  plyrContainer.appendChild(plyrElement);
+  $(this).parent().html(plyrContainer);
+});
+plyr.setup('.plyr', {iconUrl: '/css/sprite.svg'});
+</script>
+</body>
+</html>
+
