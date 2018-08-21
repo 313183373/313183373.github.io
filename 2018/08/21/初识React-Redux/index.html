@@ -1,14 +1,8 @@
 
 
-  
 
 
 
-
-  
-
-
-  
 
 
 <!doctype html>
@@ -22,9 +16,9 @@
   
   
   
-    <meta name="description" content="">
+    <meta name="description" content="我们讲了很多Redux的内容，但是我们最终的目的，是在React中使用Redux来管理我们应用的状态。但还是强调一点，React和Redux本身没有直接关系。">
   
-  <title>Archives: 8/2018: 2018 [ 熊鑫的美好生活 ]</title>
+  <title>初识React-Redux [ 熊鑫的美好生活 ]</title>
   
   
     <link rel="shortcut icon" href="/favicon.ico">
@@ -43,6 +37,15 @@
 <body>
 <div class="side-navigate hide-area">
   
+  
+    <div class="item next">
+      <a href="/2018/08/17/Redux中间件和异步操作/">
+        <div class="item-icon"></div>
+      </a>
+      <div class="item-title">
+        Redux中间件和异步操作
+      </div>
+    </div>
   
 </div>
 <div id="outer-container" class="hide-area">
@@ -68,7 +71,7 @@
           </li>
         
           
-            <li class="active">
+            <li>
           
             <a href="/archives">文章</a>
             
@@ -108,353 +111,82 @@
       <div id="Jihuajiyi" style="display:none"></div>
       
       
-  <article>
-    
-
-  <div id="recent-posts">
-    <h1>Archives
-    
-      <span class="posts-count">
-      Total
-      8
+  <article id="post">
+    <h1>初识React-Redux</h1>
+    <p class="page-title-sub">
+      <span id = "post-title-date">Created at 2018-08-21</span>
       
-        posts
+        <span id = "post-title-updated">Updated at 2018-08-21</span>
+      
+      
+      
+      <span id = "post-title-tags">
+      Tag
+      
+      
+        
+        
+        <a href="/tags/Redux/">Redux</a>
+      
+        
+          /
+        
+        
+        <a href="/tags/React/">React</a>
       
       </span>
-    
-    </h1>
-    
-    
-      
-      
-        
-      
-      
-    
-      
-      
-      
-    
-      
-      
-      
-    
-      
-      
-      
-    
-      
-      
-      
-    
-      
-      
-      
-    
-      
-      
-      
-    
-      
-      
-      
-    
-    
-    
-      
-      
-        
-        <h3 class="archive-year-title">2018
-        
-          <span class="posts-count">
-          Total
-          8
-          
-            posts
-          
-          </span>
-        
-        </h3>
-      
-      <div class="post-title-item">
-  
-  <a href="/2018/08/21/初识React-Redux/">
-  
-    初识React-Redux
-  
-  </a>
-  <p class="page-title-sub">
-    <span id = "post-title-date">8-21</span>
-    
-    
-    <span id = "post-title-tags">
-    Tag
-    
-    
-      
-      
-      <a href="/tags/Redux/">Redux</a>
-    
-      
-        /
-      
-      
-      <a href="/tags/React/">React</a>
-    
-    </span>
-    
-    
-      <br>
-      
-      
-    
-  </p>
-  
-</div>
-    
-      
-      
-      <div class="post-title-item">
-  
-  <a href="/2018/08/17/Redux中间件和异步操作/">
-  
-    Redux中间件和异步操作
-  
-  </a>
-  <p class="page-title-sub">
-    <span id = "post-title-date">8-17</span>
-    
-    
-    <span id = "post-title-tags">
-    Tag
-    
-    
-      
-      
-      <a href="/tags/Redux/">Redux</a>
-    
-    </span>
-    
-    
-      <br>
-      
-      
-    
-  </p>
-  
-</div>
-    
-      
-      
-      <div class="post-title-item">
-  
-  <a href="/2018/08/15/Redux-combineReducers源码分析/">
-  
-    Redux-combineReducers源码分析
-  
-  </a>
-  <p class="page-title-sub">
-    <span id = "post-title-date">8-15</span>
-    
-    
-    <span id = "post-title-tags">
-    Tag
-    
-    
-      
-      
-      <a href="/tags/Redux/">Redux</a>
-    
-    </span>
-    
-    
-      <br>
       
-      
-    
-  </p>
-  
-</div>
-    
-      
-      
-      <div class="post-title-item">
-  
-  <a href="/2018/08/15/Redux-createServer源码分析/">
-  
-    Redux-createServer源码分析
-  
-  </a>
-  <p class="page-title-sub">
-    <span id = "post-title-date">8-15</span>
-    
-    
-    <span id = "post-title-tags">
-    Tag
-    
-    
-      
-      
-      <a href="/tags/Redux/">Redux</a>
-    
-    </span>
-    
-    
-      <br>
-      
-      
-    
-  </p>
-  
-</div>
-    
-      
-      
-      <div class="post-title-item">
-  
-  <a href="/2018/08/15/Redux中的概念详解/">
-  
-    Redux中的概念详解
-  
-  </a>
-  <p class="page-title-sub">
-    <span id = "post-title-date">8-15</span>
-    
-    
-    <span id = "post-title-tags">
-    Tag
-    
-    
-      
-      
-      <a href="/tags/Redux/">Redux</a>
-    
-    </span>
-    
-    
-      <br>
-      
-      
-    
-  </p>
-  
-</div>
-    
-      
-      
-      <div class="post-title-item">
-  
-  <a href="/2018/08/14/初识Redux/">
-  
-    初识Redux
-  
-  </a>
-  <p class="page-title-sub">
-    <span id = "post-title-date">8-14</span>
-    
-    
-    <span id = "post-title-tags">
-    Tag
-    
-    
-      
-      
-      <a href="/tags/Redux/">Redux</a>
-    
-    </span>
-    
-    
-      <br>
-      
-      
-    
-  </p>
-  
-</div>
-    
-      
-      
-      <div class="post-title-item">
-  
-  <a href="/2018/08/10/开始使用ReactRouter（一） /">
-  
-    开始使用ReactRouter
-  
-  </a>
-  <p class="page-title-sub">
-    <span id = "post-title-date">8-10</span>
-    
-    
-    <span id = "post-title-tags">
-    Tag
-    
-    
-      
-      
-      <a href="/tags/React/">React</a>
-    
-      
-        /
-      
-      
-      <a href="/tags/ReactRouter/">ReactRouter</a>
-    
-    </span>
-    
-    
-      <br>
-      
-      
-    
-  </p>
-  
-</div>
-    
-      
-      
-      <div class="post-title-item">
-  
-  <a href="/2018/08/10/初识ReactRouter/">
-  
-    初识ReactRouter
-  
-  </a>
-  <p class="page-title-sub">
-    <span id = "post-title-date">8-10</span>
-    
-    
-    <span id = "post-title-tags">
-    Tag
-    
-    
-      
-      
-      <a href="/tags/React/">React</a>
-    
-      
-        /
-      
-      
-      <a href="/tags/ReactRouter/">ReactRouter</a>
-    
-    </span>
-    
-    
-      <br>
-      
-      
-    
-  </p>
-  
-</div>
+    </p>
     
-  </div>
-
+    <p>我们讲了很多Redux的内容，但是我们最终的目的，是在React中使用Redux来管理我们应用的状态。但还是强调一点，React和Redux本身没有直接关系。</p>
 
   </article>
+  <div class="random-toc-area">
+  <button class="btn-hide-toc btn-hide-toc-show" style="display: none" onclick="TOCToggle()">Show TOC</button>
+  <button class="btn-hide-toc btn-hide-toc-hide" onclick="TOCToggle()">Hide TOC</button>
+  <div class="random-toc">
+    <h2>Table of Content</h2>
+    
+  </div>
+</div>
+
+  
+<nav id="pagination">
+  
+
+  
+
+  
+    <a href="/2018/08/17/Redux中间件和异步操作/" class="next">Next post Redux中间件和异步操作 &rarr;</a>
+  
+</nav>
+
+  <!-- JiaThis Button BEGIN -->
+
+<!-- JiaThis Button END -->
+
 
       
       
+      
+      <!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zODM1Ny8xNDg4NQ==">
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
       
       <script src="http://open.iciba.com/huaci/huaci.js" ></script>
     </div>
@@ -538,6 +270,8 @@ var unsplashConfig = {"gravity":"north"};
 var turnoffBackgroundImage = false;
 
 
+
+  turnoffBackgroundImage = true;
 
 
 var backgroundColor = "34495E";
