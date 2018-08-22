@@ -16,7 +16,12 @@
   
   
   
-    <meta name="description" content="我们讲了很多Redux的内容，但是我们最终的目的，是在React中使用Redux来管理我们应用的状态。但还是强调一点，React和Redux本身没有直接关系。">
+    <meta name="description" content="我们讲了很多Redux的内容，但是我们最终的目的，是在React中使用Redux来管理我们应用的状态。但还是强调一点，React和Redux本身没有直接关系。
+我们在初识Redux中说到了，解决共享状态的问题的方法其实还是Context，但是我们用Redux来对Context中的state的修改变得可预测了。
+好的，我们来理一下思路：
+
+首先用Context保存我们我们创建的store
+在需...">
   
   <title>初识React-Redux [ 熊鑫的美好生活 ]</title>
   
@@ -116,7 +121,7 @@
     <p class="page-title-sub">
       <span id = "post-title-date">Created at 2018-08-21</span>
       
-        <span id = "post-title-updated">Updated at 2018-08-21</span>
+        <span id = "post-title-updated">Updated at 2018-08-22</span>
       
       
       
@@ -139,6 +144,16 @@
     </p>
     
     <p>我们讲了很多Redux的内容，但是我们最终的目的，是在React中使用Redux来管理我们应用的状态。但还是强调一点，React和Redux本身没有直接关系。</p>
+<p>我们在<a href="http://xxxxion.com/2018/08/14/初识Redux/">初识Redux</a>中说到了，解决共享状态的问题的方法其实还是<code>Context</code>，但是我们用Redux来对<code>Context</code>中的<code>state</code>的修改变得可预测了。</p>
+<p>好的，我们来理一下思路：</p>
+<ol>
+<li>首先用<code>Context</code>保存我们我们创建的<code>store</code></li>
+<li>在需要获取<code>state</code>的组件中获取<code>store</code>，然后用<code>getState</code>来获取<code>state</code></li>
+<li>在需要修改<code>state</code>的组件中获取<code>store</code>，然后用<code>dispatch</code>一个<code>action</code>来修改<code>state</code></li>
+<li>忘了什么？想想state的改变之后，用到这些state的组件有更新吗？没有！所以我们需要注册监听器。</li>
+</ol>
+<p>好了，思路就是这样，我们来试试写一个小应用来试试Redux和React结合吧！</p>
+<p>我们就写我们之前的</p>
 
   </article>
   <div class="random-toc-area">
