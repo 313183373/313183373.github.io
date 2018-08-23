@@ -1,0 +1,387 @@
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="">
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <meta name="author" content="Xion">
+  
+  
+  
+  
+    <meta name="description" content="我们讲了很多Redux的内容，但是我们最终的目的，是在React中使用Redux来管理我们应用的状态。但还是强调一点，React和Redux本身没有直接关系。
+我们在初识Redux中说到了，解决共享状态的问题的方法其实还是Context，但是我们用Redux来对Context中的state的修改变得可预测了。
+好的，我们来理一下思路：
+
+首先用Context保存我们我们创建的store
+在需...">
+  
+  <title>Redux与React结合 [ 熊鑫的美好生活 ]</title>
+  
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+  <link rel="stylesheet" href="/css/random.css">
+<link rel="stylesheet" href="/css/vegas.min.css">
+<link rel="stylesheet" href="/css/highlight-railscasts.css">
+<link rel="stylesheet" href="/css/jquery.fancybox.css">
+<link rel="stylesheet" href="/css/iconfont/iconfont.css">
+<link rel="stylesheet" href="/css/jquery.fancybox-thumbs.css">
+<link rel="stylesheet" href="/css/plyr.css">
+  
+</head>
+
+<body>
+<div class="side-navigate hide-area">
+  
+  
+    <div class="item next">
+      <a href="/2018/08/17/Redux中间件和异步操作/">
+        <div class="item-icon"></div>
+      </a>
+      <div class="item-title">
+        Redux中间件和异步操作
+      </div>
+    </div>
+  
+</div>
+<div id="outer-container" class="hide-area">
+<div id="container">
+  <div id="menu-outer" class="slide-down">
+    <div id="menu-inner">
+      <div id="brand">
+        
+        <a onClick="openUserCard()">
+          <img id="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg"/>
+          <div id="homelink">熊鑫的美好生活</div>
+        </a>
+      </div>
+      <div id="menu-list">
+        <ul>
+        
+        
+          
+            <li>
+          
+            <a href="/">首页</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/archives">文章</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/tags">标签</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/categories">分类</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="https://github.com/313183373">Github</a>
+            
+          </li>
+        
+        </ul>
+      </div>
+      <div id="show-menu">
+        <button>Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="content-outer">
+    <div id="content-inner">
+      <div id="Jihuajiyi" style="display:none"></div>
+      
+      
+  <article id="post">
+    <h1>Redux与React结合</h1>
+    <p class="page-title-sub">
+      <span id = "post-title-date">Created at 2018-08-22</span>
+      
+        <span id = "post-title-updated">Updated at 2018-08-23</span>
+      
+      
+      
+      <span id = "post-title-tags">
+      Tag
+      
+      
+        
+        
+        <a href="/tags/Redux/">Redux</a>
+      
+        
+          /
+        
+        
+        <a href="/tags/React/">React</a>
+      
+      </span>
+      
+    </p>
+    
+    <p>我们讲了很多Redux的内容，但是我们最终的目的，是在React中使用Redux来管理我们应用的状态。但还是强调一点，React和Redux本身没有直接关系。</p>
+<p>我们在<a href="http://xxxxion.com/2018/08/14/初识Redux/">初识Redux</a>中说到了，解决共享状态的问题的方法其实还是<code>Context</code>，但是我们用Redux来对<code>Context</code>中的<code>state</code>的修改变得可预测了。</p>
+<p>好的，我们来理一下思路：</p>
+<ol>
+<li>首先用<code>Context</code>保存我们我们创建的<code>store</code></li>
+<li>在需要获取<code>state</code>的组件中获取<code>store</code>，然后用<code>getState</code>来获取<code>state</code></li>
+<li>在需要修改<code>state</code>的组件中获取<code>store</code>，然后用<code>dispatch</code>一个<code>action</code>来修改<code>state</code></li>
+<li>忘了什么？想想state的改变之后，用到这些state的组件有更新吗？没有！所以我们需要注册监听器。</li>
+</ol>
+<p>好了，思路就是这样，我们来试试写一个小应用来试试Redux和React结合吧！</p>
+<p>我们写一个TodoList的应用，把所有的todo都用Redux来管理，todo的结构是这样的</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">todo: [</span><br><span class="line">    &#123;</span><br><span class="line">        text: String, 		//todo的内容</span><br><span class="line">        completed: Bool		//是否已经完成</span><br><span class="line">        id: Number</span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<p>同时，我们还得选择查看所有的todo，或者已完成的todo，或者未完成的todo。</p>
+<p>所以还得有一个保存我们想查看什么的属性visible。</p>
+<p>好的，那我们简单的估计一下我们的应用应该长这个样子：</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tNbRwgy1fuibmifelij30oa0mi75p.jpg" alt="image-20180822112805864"></p>
+<p>然后分析一下我们的组件如何划分？</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNbRwgy1fuig79jsrnj30uq0qadid.jpg" alt="image-20180822141118712"></p>
+<p>好了，从大到小，从简单到复杂的写一下把，先写<code>TodoListApp</code>组件，我们需要把<code>Context</code>在这里创建出来：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> store <span class="keyword">from</span> <span class="string">'./reducers'</span>;</span><br><span class="line"><span class="comment">// 省略一些import</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> store = createStore(reducer);</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TodoListApp</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> childContextTypes = &#123;</span><br><span class="line">        store: PropTypes.object.isRequired,</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    getChildContext = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> &#123;store&#125;;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            &lt;div&gt;</span><br><span class="line">                &lt;AddTodo/&gt;</span><br><span class="line">                &lt;TodoList/&gt;</span><br><span class="line">            &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">        )</span></span><br><span class="line"><span class="regexp">    &#125;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>我们省略掉reducer的写法，这不是现在的重点，可以看到我们这里使用<code>Context</code>来保存<code>store</code>，所有的后代都可以使用这个<code>store</code>了。</p>
+<p>接下来我们写<code>TodoList</code>组件，我们需要获取到<code>TodoListApp</code>的<code>Context</code>，然后获取到<code>store</code>，然后获取到所有的<code>todo</code>，最后展示出来。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TodoList</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">        store: PropTypes.object.isRequired,</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">        <span class="keyword">const</span> &#123;<span class="attr">todo</span>: todos, visible&#125; = store.getState();</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            &lt;ul&gt;</span><br><span class="line">                &#123;todos.filter(<span class="function"><span class="params">todo</span> =&gt;</span></span><br><span class="line">                    visible === <span class="string">'ALL'</span> ? <span class="literal">true</span> : visible === <span class="string">'COMPLETED'</span> ? todo.completed : !todo.completed)</span><br><span class="line">                    .map(<span class="function"><span class="params">todo</span> =&gt;</span> &lt;Todo &#123;...todo&#125; key=&#123;todo.id&#125;/&gt;)&#125;</span><br><span class="line">            &lt;<span class="regexp">/ul&gt;</span></span><br><span class="line"><span class="regexp">        )</span></span><br><span class="line"><span class="regexp">    &#125;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>为了更好的测试我们的组件是否正常工作，我们需要在state初始化的时候，给它人工设置一些初始值，我这里给的就是</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[&#123;text: 'learn react', completed: true, id: 1&#125;, &#123;text: 'learn redux', completed: false, id: 2&#125;]</span><br></pre></td></tr></table></figure>
+<p>两个todo项，一个已完成，一个未完成，然后，我们继续看看Todo组件，它就是简单的根据是否完成来展示不同的效果：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Todo</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;text, completed&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="keyword">const</span> style = &#123;<span class="attr">textDecoration</span>: completed ? <span class="string">'line-through'</span> : <span class="string">'none'</span>&#125;;</span><br><span class="line">        <span class="keyword">return</span> &lt;li style=&#123;style&#125;&gt;&#123;text&#125;&lt;/li&gt;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>好了，现在我们看看效果吧</p>
+<p><img src="https://ws3.sinaimg.cn/large/006tNbRwgy1fujo9mtm1bj307y02y74a.jpg" alt="image-20180823153554850"></p>
+<p>按照我们预期的方式显示了，还不错，那么接下来，我们给每个todo项添加一个鼠标事件，当鼠标点击它的时候，我们改变这个todo项的完成状态，所以我们需要修改我们的Todo组件，让它可以使用<code>dispatch</code>，那么我们需要先用<code>prop-types</code>来声明一下<code>Context</code>的类型，然后在点击的时候<code>dispatch</code>一个<code>action</code>。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Todo</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">        store: PropTypes.object.isRequired,</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    handleClick = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;id&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">        store.dispatch(&#123;</span><br><span class="line">            type:<span class="string">'TOGGLE_TODO'</span>,</span><br><span class="line">            id,</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;text, completed&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="keyword">const</span> style = &#123;<span class="attr">textDecoration</span>: completed ? <span class="string">'line-through'</span> : <span class="string">'none'</span>&#125;;</span><br><span class="line">        <span class="keyword">return</span> &lt;li style=&#123;style&#125; onClick=&#123;this.handleClick&#125;&gt;&#123;text&#125;&lt;/li&gt;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>好了，我们已经完成了这个功能，现在让我们试一试，看看有没有效果。</p>
+<p>好像没有什么效果呀，是哪里出了问题呀，我们用之前我们写过的Redux中间件<code>logger</code>来看看状态是不是真的改变了，我们在创建<code>store</code>的时候传入一个中间件把。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> logger = <span class="function"><span class="params">store</span> =&gt;</span> next =&gt; <span class="function"><span class="params">action</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'dispatch :'</span>, action.type);</span><br><span class="line">    next(action);</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'new state :'</span>, store.getState());</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> store = createStore(reducer, applyMiddleware(logger));</span><br></pre></td></tr></table></figure>
+<p>然后我们点击一个todo项，看控制台。</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tNbRwgy1fujoqqhwh2j31dg02ymxw.jpg" alt="image-20180823155223504"></p>
+<p>有的同学可能会说，这个logger这个中间件应该是很常用的把，肯定有人写了一个很好用的中间件。</p>
+<p>确实是有哦，这个中间件就叫redux-logger，我们可以用npm下载下来，然后使用一下，以后我们也都使用别人写好的中间件。我们只用知道中间件应该怎么写，以及中间件的原理就好了。</p>
+<p>我们现在改用redux-logger中间件。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> logger <span class="keyword">from</span> <span class="string">'redux-logger'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> store = createStore(reducer, applyMiddleware(logger));</span><br></pre></td></tr></table></figure>
+<p>然后我们再次点击，然后查看控制台</p>
+<p><img src="https://ws3.sinaimg.cn/large/006tNbRwgy1fujov2xxulj31eq058myy.jpg" alt="image-20180823155633904"></p>
+<p>确实好看了很多🤣</p>
+<p>好的，别忘了我们的目的是什么，我们是为了看我们点击之后，<code>state</code>是否改变，现在看来是改变了，但是为什么组件没有变化呢？</p>
+<p>那是因为我们<code>state</code>的变化没有设置监听器，组件其实并不知道原来<code>store</code>中的<code>state</code>变化了，所以就没有改变，那么我们来设置一下监听器，我们把<code>store</code>中的<code>state</code>也变成<code>TodoList</code>这个组件的<code>state</code>，然后监听器就是当<code>store</code>中的<code>state</code>变化的时候，调用<code>setState</code>改变组件的<code>state</code>，让它自己去更新组件，思路就是这样，那么我们开始修改代码。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TodoList</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 初始化state</span></span><br><span class="line">    state = &#123;</span><br><span class="line">        todos:[],</span><br><span class="line">        visible: <span class="string">''</span></span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">        store: PropTypes.object.isRequired,</span><br><span class="line">    &#125;;</span><br><span class="line">	<span class="comment">// 在组件挂载后，使用内部方法updateTodoList来更新state</span></span><br><span class="line">	<span class="comment">// 同时设置监听器</span></span><br><span class="line">    componentDidMount() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">        <span class="keyword">this</span>._updateTodoList();</span><br><span class="line">        store.subscribe(<span class="keyword">this</span>._updateTodoList);</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 获取最新的state然后更新</span></span><br><span class="line">    _updateTodoList = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">        <span class="keyword">const</span> state = store.getState();</span><br><span class="line">        <span class="keyword">this</span>.setState(&#123;</span><br><span class="line">            todos: state.todo,</span><br><span class="line">            visible: state.visible,</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;todos, visible&#125; = <span class="keyword">this</span>.state;</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            &lt;ul&gt;</span><br><span class="line">                &#123;todos.filter(<span class="function"><span class="params">todo</span> =&gt;</span></span><br><span class="line">                    visible === <span class="string">'ALL'</span> ? <span class="literal">true</span> : visible === <span class="string">'COMPLETED'</span> ? todo.completed : !todo.completed)</span><br><span class="line">                    .map(<span class="function"><span class="params">todo</span> =&gt;</span> &lt;Todo &#123;...todo&#125; key=&#123;todo.id&#125;/&gt;)&#125;</span><br><span class="line">            &lt;<span class="regexp">/ul&gt;</span></span><br><span class="line"><span class="regexp">        )</span></span><br><span class="line"><span class="regexp">    &#125;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>好了，经过我们这个一折腾，再来试试</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNbRwgy1fujpmn8qklg304h02djrc.gif" alt="1"></p>
+<p>有反应了，不错，我们现在需要添加三个标签，显示当前查看的是所有的todo还是已完成的todo，还是未完成的。</p>
+<p>我们单独写一个<code>VisibleLink</code>组件，因为当<code>visible</code>是<code>all</code>的时候，显示ALL的<code>VisibleLink</code>需要特别显示（显示为红色）。</p>
+<p>请大家先花些时间自己去写这个组件</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">VisibleLink</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">	<span class="comment">// 用prop-types库来检测Context的类型</span></span><br><span class="line">    <span class="comment">// 这也是使用Context必须的</span></span><br><span class="line">    <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">        store: PropTypes.object.isRequired,</span><br><span class="line">    &#125;;</span><br><span class="line">	<span class="comment">// 点击的话会dispatch一个action</span></span><br><span class="line">	<span class="comment">// 这里不需要监听器，为什么呢？</span></span><br><span class="line">    handleClick = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">        store.dispatch(&#123;</span><br><span class="line">            type: <span class="string">'SET_VISIBLE'</span>,</span><br><span class="line">            visible: <span class="keyword">this</span>.props.visible,</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;;</span><br><span class="line">	<span class="comment">// 根据传进来的visible参数和context来判定是否应该显示红色</span></span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;visible&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">        <span class="keyword">const</span> style = &#123;</span><br><span class="line">            color: store.getState().visible === visible ? <span class="string">'red'</span> : <span class="string">'black'</span>,</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="keyword">return</span> &lt;span onClick=&#123;this.handleClick&#125; style=&#123;style&#125;&gt;&#123;visible&#125;&lt;/span&gt;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>为什么不需要监听器呢？因为我们的<code>visible</code>参数是从父组件传递进来的，只要我们的父组件有监听器并且会更新的话，子组件自然会因为接收到了不同的props而更新。</p>
+<p>现在我们把<code>VisibleLink</code>组件用于<code>TodoList</code>组件中</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// TodoList组件的render方法</span></span><br><span class="line">render() &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123;todos, visible&#125; = <span class="keyword">this</span>.state;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">            &lt;VisibleLink visible=<span class="string">'ALL'</span>/&gt;&amp;nbsp;</span><br><span class="line">            &lt;VisibleLink visible=<span class="string">'COMPLETED'</span>/&gt;&amp;nbsp;</span><br><span class="line">            &lt;VisibleLink visible=<span class="string">'UNCOMPLETED'</span>/&gt;</span><br><span class="line">            &lt;ul&gt;</span><br><span class="line">                &#123;todos.filter(<span class="function"><span class="params">todo</span> =&gt;</span></span><br><span class="line">                    visible === <span class="string">'ALL'</span> ? <span class="literal">true</span> : visible === <span class="string">'COMPLETED'</span> ? todo.completed : !todo.completed)</span><br><span class="line">                    .map(<span class="function"><span class="params">todo</span> =&gt;</span> &lt;Todo &#123;...todo&#125; key=&#123;todo.id&#125;/&gt;)&#125;</span><br><span class="line">            &lt;<span class="regexp">/ul&gt;</span></span><br><span class="line"><span class="regexp">        &lt;/</span>div&gt;</span><br><span class="line">    )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后我们试试效果</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tNbRwgy1fujs0coiebg308g02dta9.gif" alt="1"></p>
+<p>是我们想要的效果了，现在我们还差一个添加<code>todo</code>的<code>AddTodo</code>组件没有写了</p>
+<p>这个组件大家自己写吧，我在下面给出一个写法</p>
+<hr>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AddTodo</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">    state = &#123;</span><br><span class="line">        text: <span class="string">''</span></span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">        store: PropTypes.object.isRequired</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    handleChange = <span class="function"><span class="params">event</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.setState(&#123;</span><br><span class="line">            text: event.target.value,</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    handleClick = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">        store.dispatch(&#123;</span><br><span class="line">            type: <span class="string">'ADD_TODO'</span>,</span><br><span class="line">            text: <span class="keyword">this</span>.state.text,</span><br><span class="line">        &#125;);</span><br><span class="line">        <span class="keyword">this</span>.setState(&#123;</span><br><span class="line">            text: <span class="string">''</span>,</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            &lt;div&gt;</span><br><span class="line">                &lt;input type=<span class="string">"text"</span> value=&#123;<span class="keyword">this</span>.state.text&#125; onChange=&#123;<span class="keyword">this</span>.handleChange&#125;/&gt;</span><br><span class="line">                &lt;button onClick=&#123;<span class="keyword">this</span>.handleClick&#125;&gt;提交&lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp">            &lt;/</span>div&gt;</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>好了，我们现在已经用Redux配合React完成了一个简易TodoList的网页应用了，大家的感觉怎么样？</p>
+<p>我这一路写下来感觉有很多的重复代码，比如获取Context，然后还有一个很严重的问题，用到Context的组件全部都不能复用，因为这个组件包含了很多逻辑，然而不同地方的逻辑不一定相同。</p>
+<p>针对目前的问题，我们得想办法优化一下，思路就是，我们得把逻辑和显示分离，目前我们在组件中混合了逻辑和显示，怎么做呢？还记得我们的高阶组件吗？</p>
+<p>下一小节，我们来优化这个TodoList应用！</p>
+
+  </article>
+  <div class="random-toc-area">
+  <button class="btn-hide-toc btn-hide-toc-show" style="display: none" onclick="TOCToggle()">Show TOC</button>
+  <button class="btn-hide-toc btn-hide-toc-hide" onclick="TOCToggle()">Hide TOC</button>
+  <div class="random-toc">
+    <h2>Table of Content</h2>
+    
+  </div>
+</div>
+
+  
+<nav id="pagination">
+  
+
+  
+
+  
+    <a href="/2018/08/17/Redux中间件和异步操作/" class="next">Next post Redux中间件和异步操作 &rarr;</a>
+  
+</nav>
+
+  <!-- JiaThis Button BEGIN -->
+
+<!-- JiaThis Button END -->
+
+
+      
+      
+      
+      <!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zODM1Ny8xNDg4NQ==">
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+      
+      <script src="http://open.iciba.com/huaci/huaci.js" ></script>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<div id="user-card">
+  <div class="center-field">
+    <img class="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg">
+    <p id="description"></p>
+    <ul class="social-icon">
+  
+  
+</ul>
+  </div>
+</div>
+
+
+<div id="btn-view">Hide</div>
+
+<script>
+// is trigger analytics / tongji script
+var isIgnoreHost = false;
+
+if(window && window.location && window.location.host) {
+  isIgnoreHost = ["localhost","127.0.0.1"].some(function(address){
+    return 0 === window.location.host.indexOf(address);
+  });
+}
+
+var isTriggerAnalytics = !( true && isIgnoreHost );
+
+</script>
+
+
+
+
+  
+  
+    <script src="/js/jquery-2.2.3.min.js"></script>
+  
+    <script src="/js/vegas.min.js"></script>
+  
+    <script src="/js/random.js"></script>
+  
+    <script src="/js/highlight.pack.js"></script>
+  
+    <script src="/js/jquery.mousewheel.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox-thumbs.js"></script>
+  
+    <script src="/js/plyr.js"></script>
+  
+
+<script>
+
+  // fancybox
+  var backgroundImages = [];
+  
+  $('#post').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox') || $(this).parent().hasClass('fancybox-thumb')) return;
+      var alt = this.alt || this.title;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'post' + i);
+    });
+  });
+  $(".fancybox").fancybox();
+
+var vegasConfig = {"animation":"random","preload­Image":true,"transition":["slideLeft2","slideRight2","zoomIn","swirLeft","swirRight","flash","flash2"],"timer":true,"delay":5000,"shuffle":true,"count":10};
+var unsplashConfig = {"gravity":"north"};
+// is show background images
+var turnoffBackgroundImage = false;
+
+
+
+  turnoffBackgroundImage = true;
+
+
+var backgroundColor = "34495E";
+
+$(".fancybox-thumb").fancybox({
+  prevEffect: 'none',
+  nextEffect: 'none',
+  helpers: {
+    title: {
+      type: 'outside'
+    },
+    thumbs: {
+      width: 50,
+      height: 50
+    }
+  }
+});
+
+// show video with plyr
+$(".video-container iframe").each(function(i){
+  var url = $(this).attr('src');
+  var id = url.split('/').pop();
+  var plyrContainer = document.createElement('div');
+  plyrContainer.className = 'plyr';
+  var plyrElement = document.createElement('div');
+  plyrElement.dataset.videoId = id;
+  switch(true) {
+    case url.search('youtube.com') >= 0:
+      plyrElement.dataset.type = 'youtube';
+      break;
+    case url.search('vimeo.com') >= 0:
+      plyrElement.dataset.type = 'vimeo';
+      break;
+    default:
+      return;
+  };
+  plyrContainer.appendChild(plyrElement);
+  $(this).parent().html(plyrContainer);
+});
+plyr.setup('.plyr', {iconUrl: '/css/sprite.svg'});
+</script>
+</body>
+</html>
+
