@@ -1,0 +1,352 @@
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="">
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <meta name="author" content="Xion">
+  
+  
+  
+  
+    <meta name="description" content="在上一小节我们说过，我们现在的大部分组件都不能够复用，因为用到了Context，我们也说了一个解决方法，就是把逻辑和显示分离，其中，关于Context的都是逻辑部分，比如：获取Context，获取store然后获取state，使用store.dispatch，这些都是逻辑部分，我们应该把他们和我们的显示分开，显示其实就只有render方法，那么，我们得使用到高阶组件，逻辑部分用高阶组件来做，...">
+  
+  <title>优化Redux与React结合 [ 熊鑫的美好生活 ]</title>
+  
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+  <link rel="stylesheet" href="/css/random.css">
+<link rel="stylesheet" href="/css/vegas.min.css">
+<link rel="stylesheet" href="/css/highlight-railscasts.css">
+<link rel="stylesheet" href="/css/jquery.fancybox.css">
+<link rel="stylesheet" href="/css/iconfont/iconfont.css">
+<link rel="stylesheet" href="/css/jquery.fancybox-thumbs.css">
+<link rel="stylesheet" href="/css/plyr.css">
+  
+</head>
+
+<body>
+<div class="side-navigate hide-area">
+  
+  
+    <div class="item next">
+      <a href="/2018/08/22/Redux与React结合/">
+        <div class="item-icon"></div>
+      </a>
+      <div class="item-title">
+        Redux与React结合
+      </div>
+    </div>
+  
+</div>
+<div id="outer-container" class="hide-area">
+<div id="container">
+  <div id="menu-outer" class="slide-down">
+    <div id="menu-inner">
+      <div id="brand">
+        
+        <a onClick="openUserCard()">
+          <img id="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg"/>
+          <div id="homelink">熊鑫的美好生活</div>
+        </a>
+      </div>
+      <div id="menu-list">
+        <ul>
+        
+        
+          
+            <li>
+          
+            <a href="/">首页</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/archives">文章</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/tags">标签</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/categories">分类</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="https://github.com/313183373">Github</a>
+            
+          </li>
+        
+        </ul>
+      </div>
+      <div id="show-menu">
+        <button>Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="content-outer">
+    <div id="content-inner">
+      <div id="Jihuajiyi" style="display:none"></div>
+      
+      
+  <article id="post">
+    <h1>优化Redux与React结合</h1>
+    <p class="page-title-sub">
+      <span id = "post-title-date">Created at 2018-08-24</span>
+      
+        <span id = "post-title-updated">Updated at 2018-08-24</span>
+      
+      
+      
+      <span id = "post-title-tags">
+      Tag
+      
+      
+        
+        
+        <a href="/tags/Redux/">Redux</a>
+      
+        
+          /
+        
+        
+        <a href="/tags/React/">React</a>
+      
+      </span>
+      
+    </p>
+    
+    <p>在上一小节我们说过，我们现在的大部分组件都不能够复用，因为用到了Context，我们也说了一个解决方法，就是把逻辑和显示分离，其中，关于Context的都是逻辑部分，比如：获取<code>Context</code>，获取<code>store</code>然后获取<code>state</code>，使用<code>store.dispatch</code>，这些都是逻辑部分，我们应该把他们和我们的显示分开，显示其实就只有<code>render</code>方法，那么，我们得使用到高阶组件，逻辑部分用高阶组件来做，然后把获取到的值，通过<code>props</code>传递给我们的显示组件。</p>
+<p>顺着这个思路，我们开始重构我们的代码。</p>
+<p>首先我们更改一个小组件Todo组件来试试水，看看我们的思路对不对</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Todo.js</span></span><br><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> PropTypes <span class="keyword">from</span> <span class="string">'prop-types'</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Todo</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">        store: PropTypes.object.isRequired,</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    handleClick = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;id&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">        store.dispatch(&#123;</span><br><span class="line">            type:<span class="string">'TOGGLE_TODO'</span>,</span><br><span class="line">            id,</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;text, completed&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="keyword">const</span> style = &#123;<span class="attr">textDecoration</span>: completed ? <span class="string">'line-through'</span> : <span class="string">'none'</span>&#125;;</span><br><span class="line">        <span class="keyword">return</span> &lt;li style=&#123;style&#125; onClick=&#123;this.handleClick&#125;&gt;&#123;text&#125;&lt;/li&gt;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> Todo;</span><br></pre></td></tr></table></figure>
+<p>我们先分析一下我们用到了哪些逻辑：</p>
+<ol>
+<li>获取<code>Context</code>，为了使用<code>dispatch</code></li>
+</ol>
+<p>就只有这么一个逻辑，我们写一个高阶组件包装这个逻辑，然后把使用这个<code>dispatch</code>的逻辑用方法传递给<code>Todo</code>组件。</p>
+<p>先改写这个Todo组件，所有它需要的东西都通过<code>props</code>传递进来（包括调用dispatch的函数），这样的话，<code>Todo</code>组件就可以写成一个函数式组件了。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Todo</span>(<span class="params">&#123;text, completed, onClick, id&#125;</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> style = &#123;<span class="attr">textDecoration</span>: completed ? <span class="string">'line-through'</span> : <span class="string">'none'</span>&#125;;</span><br><span class="line">    <span class="keyword">return</span> &lt;li style=&#123;style&#125; onClick=&#123;() =&gt; onClick(id)&#125;&gt;&#123;text&#125;&lt;/li&gt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>现在这个Todo组件清爽多了，并且可以复用了，然后我们写一写Todo的高阶组件</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> PropTypes <span class="keyword">from</span> <span class="string">'prop-types'</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">TodoWrapper</span>(<span class="params">Todo</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="class"><span class="keyword">class</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 获取Context必备</span></span><br><span class="line">        <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">            store: PropTypes.object.isRequired,</span><br><span class="line">        &#125;;</span><br><span class="line">		<span class="comment">// 写好dispatch方法，传递给Todo</span></span><br><span class="line">        handleClick = <span class="function">(<span class="params">id</span>) =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">            store.dispatch(&#123;</span><br><span class="line">                type: <span class="string">'TOGGLE_TODO'</span>,</span><br><span class="line">                id,</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">		<span class="comment">// 渲染Todo，传递props</span></span><br><span class="line">        render() &#123;</span><br><span class="line">            <span class="keyword">return</span> &lt;Todo &#123;...this.props&#125; onClick=&#123;this.handleClick&#125;/&gt;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">export default TodoWrapper;</span><br></pre></td></tr></table></figure>
+<p>注意上面render的时候<code>{...this.props}</code>，我们需要把传递给高阶组件的<code>props</code>，传递给真正的<code>Todo</code>组件，因为对外来说，<code>Todo</code>组件还是那个<code>Todo</code>组件，但是经过我们改造之后，其实是用高阶组件包起来的<code>Todo</code>组件，外界传递的<code>props</code>会被高阶组件接收到，如果我们不传递给<code>Todo</code>组件，就不对了。</p>
+<p>就是这样，逻辑与显示彻底分离，然后我们的<code>Todo</code>组件其实得先调用一下<code>TodoWrapper</code>高阶组件。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> TodoWrapper <span class="keyword">from</span> <span class="string">'./TodoWrapper'</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Todo</span>(<span class="params">&#123;text, completed, onClick, id&#125;</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> style = &#123;<span class="attr">textDecoration</span>: completed ? <span class="string">'line-through'</span> : <span class="string">'none'</span>&#125;;</span><br><span class="line">    <span class="keyword">return</span> &lt;li style=&#123;style&#125; onClick=&#123;() =&gt; onClick(id)&#125;&gt;&#123;text&#125;&lt;/li&gt;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> TodoWrapper(Todo);</span><br></pre></td></tr></table></figure>
+<p>优雅无比，其他地方完全不用改，我们来看看是不是能用的。</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNbRwgy1fukm0b82k1g308h02j0u4.gif" alt="1"></p>
+<p>没有问题，我们接着修改其他的组件。下面我们修改<code>VisibleLink</code>组件，先把它写成一个函数式组件</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> VisibleLinkWrapper <span class="keyword">from</span> <span class="string">'./VisibleLinkWrapper'</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">VisibleLink</span>(<span class="params">&#123;visible, storeVisible,onClick&#125;</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> style = &#123;<span class="attr">color</span>: visible === storeVisible ? <span class="string">'red'</span> : <span class="string">'black'</span>&#125;;</span><br><span class="line">    <span class="keyword">return</span> &lt;span style=&#123;style&#125; onClick=&#123;() =&gt; onClick(visible)&#125;&gt;&#123;visible&#125;&lt;/span&gt;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> VisibleLinkWrapper(VisibleLink);</span><br></pre></td></tr></table></figure>
+<p>然后写一下<code>VisibleLink</code>的高阶组件</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> PropTypes <span class="keyword">from</span> <span class="string">'prop-types'</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">VisibleLinkWrapper</span>(<span class="params">VisibleLink</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="class"><span class="keyword">class</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">        <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">            store: PropTypes.object.isRequired,</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        handleClick = <span class="function">(<span class="params">visible</span>) =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">            store.dispatch(&#123;</span><br><span class="line">                type: <span class="string">'SET_VISIBLE'</span>,</span><br><span class="line">                visible,</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        render() &#123;</span><br><span class="line">            <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">            <span class="keyword">const</span> &#123;<span class="attr">visible</span>: storeVisible&#125; = store.getState();</span><br><span class="line">            <span class="keyword">return</span> &lt;VisibleLink &#123;...this.props&#125; onClick=&#123;this.handleClick&#125; storeVisible=&#123;storeVisible&#125;/&gt;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">export default VisibleLinkWrapper;</span><br></pre></td></tr></table></figure>
+<p>好了，其实跟我们最开始写的<code>TodoWrapper</code>高阶组件非常像。相信大家也大致了解这种模式了，我们把剩下的组件全部都这样改造一下，下面来看看<code>TodoList</code>组件如何改造，这个组件比较大，我们先分析一下。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> PropTypes <span class="keyword">from</span> <span class="string">'prop-types'</span>;</span><br><span class="line"><span class="keyword">import</span> Todo <span class="keyword">from</span> <span class="string">"./Todo"</span>;</span><br><span class="line"><span class="keyword">import</span> VisibleLink <span class="keyword">from</span> <span class="string">'./VisibleLink'</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TodoList</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 这是为了配合监听器自动更新的，可以放到高阶组件中</span></span><br><span class="line">    state = &#123;</span><br><span class="line">        todos: [],</span><br><span class="line">        visible: <span class="string">''</span></span><br><span class="line">    &#125;;</span><br><span class="line">	<span class="comment">// 获取Context，放到高阶组件中</span></span><br><span class="line">    <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">        store: PropTypes.object.isRequired,</span><br><span class="line">    &#125;;</span><br><span class="line">	<span class="comment">// 初始化和注册监听器，放到高阶组件中</span></span><br><span class="line">    componentDidMount() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">        <span class="keyword">this</span>._updateTodoList();</span><br><span class="line">        store.subscribe(<span class="keyword">this</span>._updateTodoList);</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 更新，放到高阶组件中</span></span><br><span class="line">    _updateTodoList = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">        <span class="keyword">const</span> state = store.getState();</span><br><span class="line">        <span class="keyword">this</span>.setState(&#123;</span><br><span class="line">            todos: state.todo,</span><br><span class="line">            visible: state.visible,</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;;</span><br><span class="line">	<span class="comment">// 需要获取Store中的todos和visible</span></span><br><span class="line">	<span class="comment">// 其实visible没有必要获取了，这里用它只是用来filter todos</span></span><br><span class="line">	<span class="comment">// 这个逻辑可以在高阶组件中处理</span></span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;todos, visible&#125; = <span class="keyword">this</span>.state;</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            &lt;div&gt;</span><br><span class="line">                &lt;VisibleLink visible=<span class="string">'ALL'</span>/&gt;&amp;nbsp;</span><br><span class="line">                &lt;VisibleLink visible=<span class="string">'COMPLETED'</span>/&gt;&amp;nbsp;</span><br><span class="line">                &lt;VisibleLink visible=<span class="string">'UNCOMPLETED'</span>/&gt;</span><br><span class="line">                &lt;ul&gt;</span><br><span class="line">                    &#123;todos.filter(<span class="function"><span class="params">todo</span> =&gt;</span></span><br><span class="line">                        visible === <span class="string">'ALL'</span> ? <span class="literal">true</span> : visible === <span class="string">'COMPLETED'</span> ? todo.completed : !todo.completed)</span><br><span class="line">                        .map(<span class="function"><span class="params">todo</span> =&gt;</span> &lt;Todo &#123;...todo&#125; key=&#123;todo.id&#125;/&gt;)&#125;</span><br><span class="line">                &lt;<span class="regexp">/ul&gt;</span></span><br><span class="line"><span class="regexp">            &lt;/</span>div&gt;</span><br><span class="line">        )</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> TodoList;</span><br></pre></td></tr></table></figure>
+<p>分析之后，我们还是把它变成函数式组件</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> Todo <span class="keyword">from</span> <span class="string">"./Todo"</span>;</span><br><span class="line"><span class="keyword">import</span> VisibleLink <span class="keyword">from</span> <span class="string">'./VisibleLink'</span>;</span><br><span class="line"><span class="keyword">import</span> TodoListWrapper <span class="keyword">from</span> <span class="string">'./TodoListWrapper'</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">TodoList</span>(<span class="params">&#123;todos&#125;</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">            &lt;VisibleLink visible=<span class="string">'ALL'</span>/&gt;&amp;nbsp;</span><br><span class="line">            &lt;VisibleLink visible=<span class="string">'COMPLETED'</span>/&gt;&amp;nbsp;</span><br><span class="line">            &lt;VisibleLink visible=<span class="string">'UNCOMPLETED'</span>/&gt;&amp;nbsp;</span><br><span class="line">            &lt;ul&gt;</span><br><span class="line">                &#123;todos.map(<span class="function"><span class="params">todo</span> =&gt;</span> &lt;Todo &#123;...todo&#125; key=&#123;todo.id&#125;/&gt;)&#125;</span><br><span class="line">            &lt;<span class="regexp">/ul&gt;</span></span><br><span class="line"><span class="regexp">        &lt;/</span>div&gt;</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> TodoListWrapper(TodoList);</span><br></pre></td></tr></table></figure>
+<p>简单得多了，然后我们看看TodoList的高阶组件，刚才我们分析之后，可以把很多东西都放到高阶组件</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> PropTypes <span class="keyword">from</span> <span class="string">'prop-types'</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">TodoListWrapper</span>(<span class="params">TodoList</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="class"><span class="keyword">class</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">		<span class="comment">// Context必备</span></span><br><span class="line">        <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">            store: PropTypes.object.isRequired,</span><br><span class="line">        &#125;;</span><br><span class="line">		<span class="comment">// 初始化 state，注册监听器</span></span><br><span class="line">        componentWillMount() &#123;</span><br><span class="line">            <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">            <span class="keyword">this</span>._update();</span><br><span class="line">            store.subscribe(<span class="keyword">this</span>._update);</span><br><span class="line">        &#125;</span><br><span class="line">		<span class="comment">// 更新state</span></span><br><span class="line">        _update = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">            <span class="keyword">const</span> &#123;<span class="attr">todo</span>: todos, visible&#125; = store.getState();</span><br><span class="line">            <span class="keyword">this</span>.setState(&#123;</span><br><span class="line">                todos,</span><br><span class="line">                visible,</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">		<span class="comment">// 从state中获取需要的数据，通过props传递</span></span><br><span class="line">    	<span class="comment">// 提前过滤好todos，让显示组件没需要任何逻辑</span></span><br><span class="line">    	<span class="comment">// 更新时自动更新</span></span><br><span class="line">        render() &#123;</span><br><span class="line">            <span class="keyword">let</span> &#123;todos, visible&#125; = <span class="keyword">this</span>.state;</span><br><span class="line">            todos = todos.filter(<span class="function"><span class="params">todo</span> =&gt;</span> visible === <span class="string">'ALL'</span> ? <span class="literal">true</span> : visible === <span class="string">'COMPLETED'</span> ? todo.completed : !todo.completed);</span><br><span class="line">            <span class="keyword">return</span> &lt;TodoList &#123;...this.props&#125; todos=&#123;todos&#125;/&gt;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">export default TodoListWrapper;</span><br></pre></td></tr></table></figure>
+<p>这个高阶组件跟我们之前写的有一点点不一样，就是这里把<code>store</code>中的<code>state</code>作为了高阶组件的<code>state</code>，然后注册了监听器，这其实是一个很普遍的一步，之前那些高阶组件没有写是因为这里写了，一旦这个大的组件更新，那么它里面的子组件都会更新。</p>
+<p>剩下还有一个<code>AddTodo</code>组件，已经做了这么多显示逻辑分离之后，我们很熟练的把它完成。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> AddTodoWrapper <span class="keyword">from</span> <span class="string">'./AddTodoWrapper'</span>;</span><br><span class="line"><span class="comment">// 这个组件没有使用函数式组件是因为它内部其实是有state的</span></span><br><span class="line"><span class="comment">// input是一个收控组件，所以必须有state</span></span><br><span class="line"><span class="comment">// 当然也可以使用非受控组件，使得这个组件为函数式组件</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AddTodo</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">    state = &#123;</span><br><span class="line">        text: <span class="string">''</span></span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    handleChange = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.setState(&#123;</span><br><span class="line">            text: e.target.value,</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;handleClick&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            &lt;div&gt;</span><br><span class="line">                &lt;input type=<span class="string">"text"</span> value=&#123;<span class="keyword">this</span>.state.text&#125; onChange=&#123;<span class="keyword">this</span>.handleChange&#125;/&gt;</span><br><span class="line">                &lt;button onClick=&#123;() =&gt; &#123;</span><br><span class="line">                    handleClick(<span class="keyword">this</span>.state.text);</span><br><span class="line">                    <span class="keyword">this</span>.setState(&#123;<span class="attr">text</span>: <span class="string">''</span>&#125;)</span><br><span class="line">                &#125;&#125;&gt;提交</span><br><span class="line">                &lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp">            &lt;/</span>div&gt;</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> AddTodoWrapper(AddTodo);</span><br></pre></td></tr></table></figure>
+<p>它的高阶组件是</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> PropTypes <span class="keyword">from</span> <span class="string">'prop-types'</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">AddTodoWrapper</span>(<span class="params">AddTodo</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="class"><span class="keyword">class</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">        <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">            store: PropTypes.object.isRequired,</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        handleClick = <span class="function"><span class="params">text</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">            store.dispatch(&#123;</span><br><span class="line">                type: <span class="string">'ADD_TODO'</span>,</span><br><span class="line">                text,</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        render() &#123;</span><br><span class="line">            <span class="keyword">return</span> &lt;AddTodo &#123;...this.props&#125; handleClick=&#123;this.handleClick&#125;/&gt;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">export default AddTodoWrapper;</span><br></pre></td></tr></table></figure>
+<p>就是这样啦，好啦，我们现在已经完全把显示和逻辑分离了，我们现在所有的显示组件都看不出来和Context有任何联系，然后它们都能够在别的地方继续使用，而不依赖于Context。</p>
+<p>还有什么不好的地方吗？如果是一路都一步一步打代码跟着的同学，应该会发现我们写高阶组件的时候其实是非常的相似的，高阶组件存在很多相似的代码，重复是最不好的，这很影响我们写代码的体验。所以我们下一小节看看如何抽取出高阶组件中的重复逻辑，写一个更加通用的高阶组件。同学们可以先仔细思考一下🤔。</p>
+
+  </article>
+  <div class="random-toc-area">
+  <button class="btn-hide-toc btn-hide-toc-show" style="display: none" onclick="TOCToggle()">Show TOC</button>
+  <button class="btn-hide-toc btn-hide-toc-hide" onclick="TOCToggle()">Hide TOC</button>
+  <div class="random-toc">
+    <h2>Table of Content</h2>
+    
+  </div>
+</div>
+
+  
+<nav id="pagination">
+  
+
+  
+
+  
+    <a href="/2018/08/22/Redux与React结合/" class="next">Next post Redux与React结合 &rarr;</a>
+  
+</nav>
+
+  <!-- JiaThis Button BEGIN -->
+
+<!-- JiaThis Button END -->
+
+
+      
+      
+      
+      <!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zODM1Ny8xNDg4NQ==">
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+      
+      <script src="http://open.iciba.com/huaci/huaci.js" ></script>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<div id="user-card">
+  <div class="center-field">
+    <img class="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg">
+    <p id="description"></p>
+    <ul class="social-icon">
+  
+  
+</ul>
+  </div>
+</div>
+
+
+<div id="btn-view">Hide</div>
+
+<script>
+// is trigger analytics / tongji script
+var isIgnoreHost = false;
+
+if(window && window.location && window.location.host) {
+  isIgnoreHost = ["localhost","127.0.0.1"].some(function(address){
+    return 0 === window.location.host.indexOf(address);
+  });
+}
+
+var isTriggerAnalytics = !( true && isIgnoreHost );
+
+</script>
+
+
+
+
+  
+  
+    <script src="/js/jquery-2.2.3.min.js"></script>
+  
+    <script src="/js/vegas.min.js"></script>
+  
+    <script src="/js/random.js"></script>
+  
+    <script src="/js/highlight.pack.js"></script>
+  
+    <script src="/js/jquery.mousewheel.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox-thumbs.js"></script>
+  
+    <script src="/js/plyr.js"></script>
+  
+
+<script>
+
+  // fancybox
+  var backgroundImages = [];
+  
+  $('#post').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox') || $(this).parent().hasClass('fancybox-thumb')) return;
+      var alt = this.alt || this.title;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'post' + i);
+    });
+  });
+  $(".fancybox").fancybox();
+
+var vegasConfig = {"animation":"random","preload­Image":true,"transition":["slideLeft2","slideRight2","zoomIn","swirLeft","swirRight","flash","flash2"],"timer":true,"delay":5000,"shuffle":true,"count":10};
+var unsplashConfig = {"gravity":"north"};
+// is show background images
+var turnoffBackgroundImage = false;
+
+
+
+  turnoffBackgroundImage = true;
+
+
+var backgroundColor = "34495E";
+
+$(".fancybox-thumb").fancybox({
+  prevEffect: 'none',
+  nextEffect: 'none',
+  helpers: {
+    title: {
+      type: 'outside'
+    },
+    thumbs: {
+      width: 50,
+      height: 50
+    }
+  }
+});
+
+// show video with plyr
+$(".video-container iframe").each(function(i){
+  var url = $(this).attr('src');
+  var id = url.split('/').pop();
+  var plyrContainer = document.createElement('div');
+  plyrContainer.className = 'plyr';
+  var plyrElement = document.createElement('div');
+  plyrElement.dataset.videoId = id;
+  switch(true) {
+    case url.search('youtube.com') >= 0:
+      plyrElement.dataset.type = 'youtube';
+      break;
+    case url.search('vimeo.com') >= 0:
+      plyrElement.dataset.type = 'vimeo';
+      break;
+    default:
+      return;
+  };
+  plyrContainer.appendChild(plyrElement);
+  $(this).parent().html(plyrContainer);
+});
+plyr.setup('.plyr', {iconUrl: '/css/sprite.svg'});
+</script>
+</body>
+</html>
+
