@@ -119,14 +119,14 @@
   <article id="post">
     <h1>Redux与React结合</h1>
     <p class="page-title-sub">
-      <span id = "post-title-date">Created at 2018-08-22</span>
+      <span id = "post-title-date">撰写于 2018-08-22</span>
       
-        <span id = "post-title-updated">Updated at 2018-08-24</span>
+        <span id = "post-title-updated">修改于 2018-08-24</span>
       
       
       
       <span id = "post-title-tags">
-      Tag
+      标签
       
       
         
@@ -162,6 +162,9 @@
 <p>然后分析一下我们的组件如何划分？</p>
 <p><img src="https://ws1.sinaimg.cn/large/006tNbRwgy1fuig79jsrnj30uq0qadid.jpg" alt="image-20180822141118712"></p>
 <p>好了，从大到小，从简单到复杂的写一下把，先写<code>TodoListApp</code>组件，我们需要把<code>Context</code>在这里创建出来：</p>
+<blockquote>
+<p>这里使用的是传统的Context写法，官网目前有Context新的用法，传统写法在未来可能不被支持，现在我们先这么使用，其实React-Redux库中也是使用的这种Context的写法。</p>
+</blockquote>
 <figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> reducer <span class="keyword">from</span> <span class="string">'./reducers'</span>;</span><br><span class="line"><span class="comment">// 省略一些import</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> store = createStore(reducer);</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TodoListApp</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> childContextTypes = &#123;</span><br><span class="line">        store: PropTypes.object.isRequired,</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    getChildContext = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> &#123;store&#125;;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            &lt;div&gt;</span><br><span class="line">                &lt;AddTodo/&gt;</span><br><span class="line">                &lt;TodoList/&gt;</span><br><span class="line">            &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">        )</span></span><br><span class="line"><span class="regexp">    &#125;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
 <p>我们省略掉reducer的写法，这不是现在的重点，可以看到我们这里使用<code>Context</code>来保存<code>store</code>，所有的后代都可以使用这个<code>store</code>了。</p>
 <p>接下来我们写<code>TodoList</code>组件，我们需要获取到<code>TodoListApp</code>的<code>Context</code>，然后获取到<code>store</code>，然后获取到所有的<code>todo</code>，最后展示出来。</p>
@@ -211,10 +214,10 @@
 
   </article>
   <div class="random-toc-area">
-  <button class="btn-hide-toc btn-hide-toc-show" style="display: none" onclick="TOCToggle()">Show TOC</button>
-  <button class="btn-hide-toc btn-hide-toc-hide" onclick="TOCToggle()">Hide TOC</button>
+  <button class="btn-hide-toc btn-hide-toc-show" style="display: none" onclick="TOCToggle()">显示目录</button>
+  <button class="btn-hide-toc btn-hide-toc-hide" onclick="TOCToggle()">隐藏目录</button>
   <div class="random-toc">
-    <h2>Table of Content</h2>
+    <h2>目录</h2>
     
   </div>
 </div>
@@ -226,7 +229,7 @@
   
 
   
-    <a href="/2018/08/17/Redux中间件和异步操作/" class="next">Next post Redux中间件和异步操作 &rarr;</a>
+    <a href="/2018/08/17/Redux中间件和异步操作/" class="next">下一篇 Redux中间件和异步操作 &rarr;</a>
   
 </nav>
 
