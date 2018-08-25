@@ -1,0 +1,357 @@
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="">
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <meta name="author" content="Xion">
+  
+  
+  
+  
+    <meta name="description" content="在上一小节中，我们已经完全把显示和逻辑两个部分分离了，是通过高阶组件来完成的，但是我们在写高阶组件的过程中，写了很多的重复代码，这还只是一个简单的Web应用，如果组件更多，那我们的重复工作就会特别多，我们得把这些重复的工作交给机器自己去做，这就需要我们抽象高阶组件的逻辑。
+首先得先分析一下高阶组件帮助显示组件做了哪些事情：
+
+获取Context中的store
+获取store中的state，然...">
+  
+  <title>进一步优化Redux与React结合 [ 熊鑫的美好生活 ]</title>
+  
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+  <link rel="stylesheet" href="/css/random.css">
+<link rel="stylesheet" href="/css/vegas.min.css">
+<link rel="stylesheet" href="/css/highlight-railscasts.css">
+<link rel="stylesheet" href="/css/jquery.fancybox.css">
+<link rel="stylesheet" href="/css/iconfont/iconfont.css">
+<link rel="stylesheet" href="/css/jquery.fancybox-thumbs.css">
+<link rel="stylesheet" href="/css/plyr.css">
+  
+</head>
+
+<body>
+<div class="side-navigate hide-area">
+  
+  
+    <div class="item next">
+      <a href="/2018/08/24/优化Redux与React结合/">
+        <div class="item-icon"></div>
+      </a>
+      <div class="item-title">
+        优化Redux与React结合
+      </div>
+    </div>
+  
+</div>
+<div id="outer-container" class="hide-area">
+<div id="container">
+  <div id="menu-outer" class="slide-down">
+    <div id="menu-inner">
+      <div id="brand">
+        
+        <a onClick="openUserCard()">
+          <img id="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg"/>
+          <div id="homelink">熊鑫的美好生活</div>
+        </a>
+      </div>
+      <div id="menu-list">
+        <ul>
+        
+        
+          
+            <li>
+          
+            <a href="/">首页</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/archives">文章</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/tags">标签</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/categories">分类</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="https://github.com/313183373">Github</a>
+            
+          </li>
+        
+        </ul>
+      </div>
+      <div id="show-menu">
+        <button>Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="content-outer">
+    <div id="content-inner">
+      <div id="Jihuajiyi" style="display:none"></div>
+      
+      
+  <article id="post">
+    <h1>进一步优化Redux与React结合</h1>
+    <p class="page-title-sub">
+      <span id = "post-title-date">Created at 2018-08-25</span>
+      
+        <span id = "post-title-updated">Updated at 2018-08-25</span>
+      
+      
+      
+      <span id = "post-title-tags">
+      Tag
+      
+      
+        
+        
+        <a href="/tags/Redux/">Redux</a>
+      
+        
+          /
+        
+        
+        <a href="/tags/React/">React</a>
+      
+      </span>
+      
+    </p>
+    
+    <p>在上一小节中，我们已经完全把显示和逻辑两个部分分离了，是通过高阶组件来完成的，但是我们在写高阶组件的过程中，写了很多的重复代码，这还只是一个简单的Web应用，如果组件更多，那我们的重复工作就会特别多，我们得把这些重复的工作交给机器自己去做，这就需要我们抽象高阶组件的逻辑。</p>
+<p>首先得先分析一下高阶组件帮助显示组件做了哪些事情：</p>
+<ol>
+<li>获取Context中的<code>store</code></li>
+<li>获取<code>store</code>中的<code>state</code>，然后有选择的传递给显示组件</li>
+<li>获取<code>store</code>中的<code>dispatch</code>，定义好函数然后传递给显示组件</li>
+<li>将传递给高阶组件的<code>props</code>原封不动的传递给显示组件</li>
+</ol>
+<p>好像是这些事情，让我们再仔细想想还有没有其他的，我们可以回顾一下<code>TodoList</code>组件的高阶组件</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> PropTypes <span class="keyword">from</span> <span class="string">'prop-types'</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">TodoListWrapper</span>(<span class="params">TodoList</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="class"><span class="keyword">class</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">		<span class="comment">// Context必备</span></span><br><span class="line">        <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">            store: PropTypes.object.isRequired,</span><br><span class="line">        &#125;;</span><br><span class="line">		<span class="comment">// 初始化 state，注册监听器</span></span><br><span class="line">        componentWillMount() &#123;</span><br><span class="line">            <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">            <span class="keyword">this</span>._update();</span><br><span class="line">            store.subscribe(<span class="keyword">this</span>._update);</span><br><span class="line">        &#125;</span><br><span class="line">		<span class="comment">// 更新state</span></span><br><span class="line">        _update = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">            <span class="keyword">const</span> &#123;<span class="attr">todo</span>: todos, visible&#125; = store.getState();</span><br><span class="line">            <span class="keyword">this</span>.setState(&#123;</span><br><span class="line">                todos,</span><br><span class="line">                visible,</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">		<span class="comment">// 从state中获取需要的数据，通过props传递</span></span><br><span class="line">    	<span class="comment">// 提前过滤好todos，让显示组件没需要任何逻辑</span></span><br><span class="line">    	<span class="comment">// 更新时自动更新</span></span><br><span class="line">        render() &#123;</span><br><span class="line">            <span class="keyword">let</span> &#123;todos, visible&#125; = <span class="keyword">this</span>.state;</span><br><span class="line">            todos = todos.filter(<span class="function"><span class="params">todo</span> =&gt;</span> visible === <span class="string">'ALL'</span> ? <span class="literal">true</span> : visible === <span class="string">'COMPLETED'</span> ? todo.completed : !todo.completed);</span><br><span class="line">            <span class="keyword">return</span> &lt;TodoList &#123;...this.props&#125; todos=&#123;todos&#125;/&gt;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">export default TodoListWrapper;</span><br></pre></td></tr></table></figure>
+<p>相信你应该反应过来了，我们还需要让state更新之后，组件也会更新，这就需要：</p>
+<ol start="5">
+<li>把store中需要的state作为高阶组件自身的state</li>
+<li>定义更新函数，作为store更新的监听函数</li>
+</ol>
+<p>好了，这就是高阶组件为我们做的所有事情，其中大部分所有组件都是相同的，只有第2步和第3步会有区别，因为不是每个组件都需要<code>store</code>中的所有<code>state</code>，不同组件需要的<code>state</code>是不一样的，同理，不同组件需要的dispatch构成的函数也是不一样的。是不是这些不一样就导致我们无法写一个通用的高阶组件呢？</p>
+<p>那当然不是啦，目前我们的高阶组件只有一个参数，就是需要被包装的组件，从来没有人规定高阶组件只能有这一个参数，我们可以把上面我们所说的需要定制化的东西通过参数传进来，好啦，现在所有的问题就解决了，我们来实际的写一下看看。</p>
+<p>我们把这个通用的高阶组件叫做<code>connect</code>，意思就是把React和Redux连接起来。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> PropTypes <span class="keyword">from</span> <span class="string">'prop-types'</span>;</span><br><span class="line"><span class="comment">// mapStateToProps和mapDispatchToProps就是需要定制化的内容，</span></span><br><span class="line"><span class="comment">// 因为每个组件需要的东西不一样，所以这里作为参数传进来，它们都是</span></span><br><span class="line"><span class="comment">// 函数，mapStateToProps把store.getState()和传递给高阶组件的</span></span><br><span class="line"><span class="comment">// props作为参数，返回组件的需要的props。mapDispatchToProps把</span></span><br><span class="line"><span class="comment">// dispatch和高阶组件的props作为参数，然后返回props。</span></span><br><span class="line"><span class="keyword">const</span> connect = <span class="function">(<span class="params">mapStateToProps, mapDispatchToProps</span>) =&gt;</span> WrappedComponent =&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="class"><span class="keyword">class</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">        <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">            store: PropTypes.object.isRequired,</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        componentWillMount() &#123;</span><br><span class="line">            <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">            <span class="keyword">this</span>._update();</span><br><span class="line">            store.subscribe(<span class="keyword">this</span>._update);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        _update = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">            <span class="comment">// 这里调用mapStateToProps获取需要的state</span></span><br><span class="line">            <span class="keyword">const</span> mapProps = mapStateToProps ? mapStateToProps(store.getState(), <span class="keyword">this</span>.props) : &#123;&#125;;</span><br><span class="line">            <span class="comment">// 调用mapDispatchToProps来获取需要的dispatch函数</span></span><br><span class="line">            <span class="keyword">const</span> dispatchProps = mapDispatchToProps ? mapDispatchToProps(store.dispatch, <span class="keyword">this</span>.props) : &#123;&#125;;</span><br><span class="line">            <span class="comment">// 把他们作为参数，以便更新</span></span><br><span class="line">            <span class="keyword">this</span>.setState(&#123;</span><br><span class="line">                ...mapProps,</span><br><span class="line">                ...dispatchProps,</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        render() &#123;</span><br><span class="line">            <span class="comment">// 传递给被包装的组件</span></span><br><span class="line">            <span class="keyword">return</span> &lt;WrappedComponent &#123;...this.state&#125; &#123;...this.props&#125;/&gt;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">export default connect;</span><br></pre></td></tr></table></figure>
+<p>好了，经过现在这一层抽象，我们就可以使用<code>connect</code>来帮助我们创造高阶组件了，我们需要做的就是定义两个函数，<code>mapStateToProps</code>和<code>mapDispatchToProps</code>，分别用来表明需要的<code>state</code>，以及需要的<code>dispatch</code>函数。</p>
+<p>现在让我们把所有的高阶函数重新写一遍，还是从<code>Todo</code>组件的高阶组件<code>TodoWrapper</code>开始，先看看原来的代码</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">TodoWrapper</span>(<span class="params">Todo</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="class"><span class="keyword">class</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">        <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">            store: PropTypes.object.isRequired,</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        handleClick = <span class="function">(<span class="params">id</span>) =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">            store.dispatch(&#123;</span><br><span class="line">                type: <span class="string">'TOGGLE_TODO'</span>,</span><br><span class="line">                id,</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        render() &#123;</span><br><span class="line">            <span class="keyword">return</span> &lt;Todo &#123;...this.props&#125; onClick=&#123;this.handleClick&#125;/&gt;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们知道<code>Todo</code>组件没有用到什么<code>state</code>，而是<code>dispatch</code>的函数，所以我们只用写一个<code>mapDispatchToProps</code>函数。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> connect <span class="keyword">from</span> <span class="string">'./connect'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> mapDispatchToProps = <span class="function"><span class="params">dispatch</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        onClick: <span class="function"><span class="params">id</span> =&gt;</span> &#123;</span><br><span class="line">            dispatch(&#123;</span><br><span class="line">                type: <span class="string">'TOGGLE_TODO'</span>,</span><br><span class="line">                id,</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> connect(<span class="literal">null</span>, mapDispatchToProps);</span><br></pre></td></tr></table></figure>
+<p>写好啦！我们来对比一下新旧两个<code>TodoWrapper</code>组件，明显新的那个代码更加简洁，而且意思也非常明确。</p>
+<p>我们更改<code>VisibleLinkWrapper</code>看看，先看现在的代码：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> PropTypes <span class="keyword">from</span> <span class="string">'prop-types'</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">VisibleLinkWrapper</span>(<span class="params">VisibleLink</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="class"><span class="keyword">class</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">        <span class="keyword">static</span> contextTypes = &#123;</span><br><span class="line">            store: PropTypes.object.isRequired,</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        handleClick = <span class="function">(<span class="params">visible</span>) =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">            store.dispatch(&#123;</span><br><span class="line">                type: <span class="string">'SET_VISIBLE'</span>,</span><br><span class="line">                visible,</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        render() &#123;</span><br><span class="line">            <span class="keyword">const</span> &#123;store&#125; = <span class="keyword">this</span>.context;</span><br><span class="line">            <span class="keyword">const</span> &#123;<span class="attr">visible</span>: storeVisible&#125; = store.getState();</span><br><span class="line">            <span class="keyword">return</span> &lt;VisibleLink &#123;...this.props&#125; onClick=&#123;this.handleClick&#125; storeVisible=&#123;storeVisible&#125;/&gt;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">export default VisibleLinkWrapper;</span><br></pre></td></tr></table></figure>
+<p>其实就是获取了visible，然后定了一个dispatch函数，我们写两个函数就搞定了。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> connect <span class="keyword">from</span> <span class="string">'./connect'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> mapStateToProps = <span class="function"><span class="params">state</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        storeVisible: state.visible,</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> mapDispatchToProps = <span class="function"><span class="params">dispatch</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        onClick: <span class="function"><span class="params">visible</span> =&gt;</span> &#123;</span><br><span class="line">            dispatch(&#123;</span><br><span class="line">                type: <span class="string">'SET_VISIBLE'</span>,</span><br><span class="line">                visible,</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> connect(mapStateToProps,mapDispatchToProps);</span><br></pre></td></tr></table></figure>
+<p>太方便了，相信大家也会使用了，我直接给出更改剩下所有高阶组件的代码：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// TodoListWrapper组件</span></span><br><span class="line"><span class="keyword">import</span> connect <span class="keyword">from</span> <span class="string">'./connect'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> mapStateToProps = <span class="function"><span class="params">state</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123;<span class="attr">todo</span>: todos, visible&#125; = state;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        todos: todos.filter(<span class="function"><span class="params">todo</span> =&gt;</span> visible === <span class="string">'ALL'</span> ? <span class="literal">true</span> : visible === <span class="string">'COMPLETED'</span> ? todo.completed : !todo.completed),</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> connect(mapStateToProps);</span><br></pre></td></tr></table></figure>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// AddTodoWrapper组件</span></span><br><span class="line"><span class="keyword">import</span> connect <span class="keyword">from</span> <span class="string">'./connect'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> mapDispatchToProps = <span class="function"><span class="params">dispatch</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        onClick: <span class="function"><span class="params">text</span> =&gt;</span> &#123;</span><br><span class="line">            dispatch(&#123;</span><br><span class="line">                type: <span class="string">'ADD_TODO'</span>,</span><br><span class="line">                text</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> connect(<span class="literal">null</span>, mapDispatchToProps);</span><br></pre></td></tr></table></figure>
+<p>完成了，无论从代码量还是可读性上来说，使用我们抽象过后的<code>connect</code>函数都会好很多。</p>
+<p>有的同学肯定又会说啦，这种经常普遍使用的函数，应该有别的库已经提供了呀，没错，<code>connect</code>函数和<code>Provider</code>组件都有第三方库提供了，但是希望大家在使用别人的库的时候，也能了解一下其中的原理。</p>
+<p>React-Redux库就是专门用于将React和Redux结合的，也是用<code>Provider</code>和<code>connect</code>完成的，我们这里的用法可以原封不动的套用到React-Redux库中，同时它还提供了一些额外的用法，当然啦，它写的更加好。</p>
+<p>下一小节我们来学习一下使用React-Redux库，虽然常用的用法就跟我们上面的用法一样，但是其中有一些不一样的东西需要说一下。</p>
+
+  </article>
+  <div class="random-toc-area">
+  <button class="btn-hide-toc btn-hide-toc-show" style="display: none" onclick="TOCToggle()">Show TOC</button>
+  <button class="btn-hide-toc btn-hide-toc-hide" onclick="TOCToggle()">Hide TOC</button>
+  <div class="random-toc">
+    <h2>Table of Content</h2>
+    
+  </div>
+</div>
+
+  
+<nav id="pagination">
+  
+
+  
+
+  
+    <a href="/2018/08/24/优化Redux与React结合/" class="next">Next post 优化Redux与React结合 &rarr;</a>
+  
+</nav>
+
+  <!-- JiaThis Button BEGIN -->
+
+<!-- JiaThis Button END -->
+
+
+      
+      
+      
+      <!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zODM1Ny8xNDg4NQ==">
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+      
+      <script src="http://open.iciba.com/huaci/huaci.js" ></script>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<div id="user-card">
+  <div class="center-field">
+    <img class="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg">
+    <p id="description"></p>
+    <ul class="social-icon">
+  
+  
+</ul>
+  </div>
+</div>
+
+
+<div id="btn-view">Hide</div>
+
+<script>
+// is trigger analytics / tongji script
+var isIgnoreHost = false;
+
+if(window && window.location && window.location.host) {
+  isIgnoreHost = ["localhost","127.0.0.1"].some(function(address){
+    return 0 === window.location.host.indexOf(address);
+  });
+}
+
+var isTriggerAnalytics = !( true && isIgnoreHost );
+
+</script>
+
+
+
+
+  
+  
+    <script src="/js/jquery-2.2.3.min.js"></script>
+  
+    <script src="/js/vegas.min.js"></script>
+  
+    <script src="/js/random.js"></script>
+  
+    <script src="/js/highlight.pack.js"></script>
+  
+    <script src="/js/jquery.mousewheel.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox-thumbs.js"></script>
+  
+    <script src="/js/plyr.js"></script>
+  
+
+<script>
+
+  // fancybox
+  var backgroundImages = [];
+  
+  $('#post').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox') || $(this).parent().hasClass('fancybox-thumb')) return;
+      var alt = this.alt || this.title;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'post' + i);
+    });
+  });
+  $(".fancybox").fancybox();
+
+var vegasConfig = {"animation":"random","preload­Image":true,"transition":["slideLeft2","slideRight2","zoomIn","swirLeft","swirRight","flash","flash2"],"timer":true,"delay":5000,"shuffle":true,"count":10};
+var unsplashConfig = {"gravity":"north"};
+// is show background images
+var turnoffBackgroundImage = false;
+
+
+
+  turnoffBackgroundImage = true;
+
+
+var backgroundColor = "34495E";
+
+$(".fancybox-thumb").fancybox({
+  prevEffect: 'none',
+  nextEffect: 'none',
+  helpers: {
+    title: {
+      type: 'outside'
+    },
+    thumbs: {
+      width: 50,
+      height: 50
+    }
+  }
+});
+
+// show video with plyr
+$(".video-container iframe").each(function(i){
+  var url = $(this).attr('src');
+  var id = url.split('/').pop();
+  var plyrContainer = document.createElement('div');
+  plyrContainer.className = 'plyr';
+  var plyrElement = document.createElement('div');
+  plyrElement.dataset.videoId = id;
+  switch(true) {
+    case url.search('youtube.com') >= 0:
+      plyrElement.dataset.type = 'youtube';
+      break;
+    case url.search('vimeo.com') >= 0:
+      plyrElement.dataset.type = 'vimeo';
+      break;
+    default:
+      return;
+  };
+  plyrContainer.appendChild(plyrElement);
+  $(this).parent().html(plyrContainer);
+});
+plyr.setup('.plyr', {iconUrl: '/css/sprite.svg'});
+</script>
+</body>
+</html>
+
