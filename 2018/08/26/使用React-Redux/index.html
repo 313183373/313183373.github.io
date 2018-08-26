@@ -225,7 +225,7 @@
 <p>这是一个函数，返回值是高阶组件。</p>
 <p>参数：</p>
 <ol>
-<li><p><code>[mapStateToProps(state, [ownProps]): stateProps]</code>(Function)带[]表示是可选的，如果这个参数指定了，那么当Redux Store更新的时候，组件会更新。这个参数必须是一个函数，函数的第一个参数是当前Redux Store中的state，第二个参数是传递给高阶组件的参数，返回值是一个字面量对象。这个返回值会作为参数传递给包裹的组件。这个跟我们自己写的一样</p>
+<li><p><code>[mapStateToProps(state, [ownProps]): stateProps]</code>(Function)带[]表示是可选的，如果这个参数指定了，那么当Redux Store更新的时候，组件会更新。这个参数必须是一个函数，函数的第一个参数是当前Redux Store中的state，第二个参数是传递给高阶组件的参数，返回值是一个字面量对象。这个返回值会作为参数传递给包裹的组件。这个跟我们自己写的一样，如果不需要这个参数的话，请传递<code>null</code>或者<code>undefined</code></p>
 </li>
 <li><p><code>[mapDispatchToProps(dispatch, [ownProps]):dispatchProps</code>(Object or Function) 大部分跟我们自己写的一样，但是在我们写的那个版本中，这个参数只能是函数，这里可以是对象，作为函数时，和我们那里的用法一样，作为对象时，对象的每个属性都是一个函数，这个函数就是action creator，然后会用dispatch函数包裹一层，也就是会自动调用。这么说可能不好理解，其实就是类似使用<code>bindActionCreators</code>，当然我们之前没讲过这个方法。我们直接看个例子吧，我们就把我们用函数写的mapDispatchToProps参数修改为对象。</p>
 <p>就把<code>AddTodoWrapper</code>中的<code>mapDispatchToProps</code>函数改写一下，现在是：</p>
@@ -233,6 +233,7 @@
 <p>我们可以这么写：</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> mapDispatchToProps = &#123;</span><br><span class="line">    onClick: <span class="function"><span class="params">text</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (&#123;</span><br><span class="line">            type: <span class="string">'ADD_TODO'</span>,</span><br><span class="line">            text</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 <p>这样写了之后<code>mapDispatchToProps</code>就是一个对象了，这两种写法是一摸一样的，传递到connect之后，这个对象中的onClick这个action creater函数会自动被dispatch调用。</p>
+<p>如果提供mapDispatchToProps参数的话，connect方法会把dispatch函数作为props传递到被包装的组件中，组件可以自行使用dispatch函数。</p>
 </li>
 <li><p>剩下的参数用的不多，感兴趣的同学也是可以查看<a href="https://github.com/reduxjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options" target="_blank" rel="noopener">官方文档</a></p>
 </li>
