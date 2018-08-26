@@ -233,7 +233,7 @@
 <p>我们可以这么写：</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> mapDispatchToProps = &#123;</span><br><span class="line">    onClick: <span class="function"><span class="params">text</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (&#123;</span><br><span class="line">            type: <span class="string">'ADD_TODO'</span>,</span><br><span class="line">            text</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 <p>这样写了之后<code>mapDispatchToProps</code>就是一个对象了，这两种写法是一摸一样的，传递到connect之后，这个对象中的onClick这个action creater函数会自动被dispatch调用。</p>
-<p>如果提供mapDispatchToProps参数的话，connect方法会把dispatch函数作为props传递到被包装的组件中，组件可以自行使用dispatch函数。</p>
+<p>如果不提供mapDispatchToProps参数的话，connect方法会把dispatch函数作为props传递到被包装的组件中，组件可以自行使用dispatch函数。</p>
 </li>
 <li><p>剩下的参数用的不多，感兴趣的同学也是可以查看<a href="https://github.com/reduxjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options" target="_blank" rel="noopener">官方文档</a></p>
 </li>
