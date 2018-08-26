@@ -1,0 +1,420 @@
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="">
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <meta name="author" content="Xion">
+  
+  
+  
+  
+    <meta name="description" content="经过了Redux与React结合，优化Redux和React结合和进一步优化Redux React结合这三小节的学习，我们已经掌握了大部分使用React Redux库的方法。我们现在总结一下。
+现在我们再次强调一点，React和Redux本身没有任何关系。
+如果我们需要在React中使用Redux，我们首先需要使用Redux库，这是必须的，然后我们得和React结合，就得使用到React R...">
+  
+  <title>使用React-Redux [ 熊鑫的美好生活 ]</title>
+  
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+  <link rel="stylesheet" href="/css/random.css">
+<link rel="stylesheet" href="/css/vegas.min.css">
+<link rel="stylesheet" href="/css/highlight-railscasts.css">
+<link rel="stylesheet" href="/css/jquery.fancybox.css">
+<link rel="stylesheet" href="/css/iconfont/iconfont.css">
+<link rel="stylesheet" href="/css/jquery.fancybox-thumbs.css">
+<link rel="stylesheet" href="/css/plyr.css">
+  
+</head>
+
+<body>
+<div class="side-navigate hide-area">
+  
+  
+    <div class="item next">
+      <a href="/2018/08/25/进一步优化Redux与React结合/">
+        <div class="item-icon"></div>
+      </a>
+      <div class="item-title">
+        进一步优化Redux与React结合
+      </div>
+    </div>
+  
+</div>
+<div id="outer-container" class="hide-area">
+<div id="container">
+  <div id="menu-outer" class="slide-down">
+    <div id="menu-inner">
+      <div id="brand">
+        
+        <a onClick="openUserCard()">
+          <img id="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg"/>
+          <div id="homelink">熊鑫的美好生活</div>
+        </a>
+      </div>
+      <div id="menu-list">
+        <ul>
+        
+        
+          
+            <li>
+          
+            <a href="/">首页</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/archives">文章</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/tags">标签</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/categories">分类</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="https://github.com/313183373">Github</a>
+            
+          </li>
+        
+        </ul>
+      </div>
+      <div id="show-menu">
+        <button>Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="content-outer">
+    <div id="content-inner">
+      <div id="Jihuajiyi" style="display:none"></div>
+      
+      
+  <article id="post">
+    <h1>使用React-Redux</h1>
+    <p class="page-title-sub">
+      <span id = "post-title-date">Created at 2018-08-26</span>
+      
+        <span id = "post-title-updated">Updated at 2018-08-26</span>
+      
+      
+      
+      <span id = "post-title-tags">
+      Tag
+      
+      
+        
+        
+        <a href="/tags/Redux/">Redux</a>
+      
+        
+          /
+        
+        
+        <a href="/tags/React/">React</a>
+      
+      </span>
+      
+    </p>
+    
+    <p>经过了Redux与React结合，优化Redux和React结合和进一步优化Redux React结合这三小节的学习，我们已经掌握了大部分使用React Redux库的方法。我们现在总结一下。</p>
+<p>现在我们再次强调一点，React和Redux本身没有任何关系。</p>
+<p>如果我们需要在React中使用Redux，我们首先需要使用Redux库，这是必须的，然后我们得和React结合，就得使用到React Redux库，我们上一小节说到的内容其实就是引出这个库。</p>
+<p>我们在上一小节中，把显示和逻辑分开了，其实这在React Redux中叫做<strong>展示组件</strong>和<strong>容器组件</strong>。</p>
+<p>这个表格总结了他们的区别：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>展示组件</th>
+<th>容器组件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>作用</td>
+<td>描述如何展现（骨架、样式）</td>
+<td>描述如何运行（数据获取、状态更新）</td>
+</tr>
+<tr>
+<td>直接使用 Redux</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>数据来源</td>
+<td>props</td>
+<td>监听 Redux state</td>
+</tr>
+<tr>
+<td>数据修改</td>
+<td>从 props 调用回调函数</td>
+<td>向 Redux 派发 actions</td>
+</tr>
+<tr>
+<td>调用方式</td>
+<td>手动</td>
+<td>通常由 React Redux 生成</td>
+</tr>
+</tbody>
+</table>
+<p>这个表格很清晰的表达了展示组件和容器组件的区别，在我们那个TodoList的例子中，名字不是以Wrapper结尾的都是展示组件，反之就是容器组件。一般我们把容器组件放到项目中的<code>containers</code>文件夹中，展示组件就放在<code>components</code>文件夹中。</p>
+<p>展示组件：</p>
+<ol>
+<li>TodoListApp</li>
+<li>TodoList</li>
+<li>AddTodo</li>
+<li>Todo</li>
+<li>VisibleLink</li>
+</ol>
+<p>容器组件：</p>
+<ol>
+<li>TodoListWrapper</li>
+<li>AddTodoWrapper</li>
+<li>TodoWrapper</li>
+<li>VisibleLinkWrapper</li>
+</ol>
+<p>现在我们用React Redux库改造一下现有的这个应用。</p>
+<p>首先就是得安装这个库</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install react-redux</span><br></pre></td></tr></table></figure>
+<p>它的API有三个：</p>
+<ol>
+<li><code>&lt;Provider store&gt;</code>提供<code>store</code>给<code>connect</code>的子组件使用。</li>
+<li><code>connect([mapStateToProps], [mapDispatchToProps], [mergeProps], [options])</code>把组件连接到Redux store，返回一个高阶组件(高阶组件其实是函数，参数是组件，返回值是组件)</li>
+<li><code>ConnectAdvanced(selectorFactory, [connectOptions])</code>这是connect的高级版，可定制的东西更多，这里不介绍，想了解可以看<a href="https://github.com/reduxjs/react-redux/blob/master/docs/api.md#connectadvancedselectorfactory-connectoptions" target="_blank" rel="noopener">官方文档</a></li>
+</ol>
+<p>我之前也是故意用这几个名字命名我们自己的写的connect函数和Provider组件，其实，我们写的东西几乎不用修改就能直接套用上React Redux库。我们把自己写的connect和Provider组件删除，然后引入React Redux库，像这样：</p>
+<p>在<code>TodoListApp</code>组件中，把<code>import Provider from &#39;./Provider&#39;;</code>改成<code>import {Provider} from &#39;react-redux&#39;;</code>就行了，用法都是一样的。</p>
+<p>在<code>TodoListWrapper</code>组件中，把<code>import connect from &#39;./connect&#39;;</code>改成<code>import {connect} from &#39;react-redux&#39;;</code>也就行了。</p>
+<p>其他的都是这样改。下面我们详细的讲讲这几个API。</p>
+<ol>
+<li><p><code>&lt;Provider store&gt;</code></p>
+<p>这是一个组件，参数有两个:</p>
+<ol>
+<li><code>store</code>(Redux Store) 传递Redux Store</li>
+<li><code>children</code>(ReactElement) Provider组件的子组件，直接放在标签中就行了，不要以为是通过参数传递哦。</li>
+</ol>
+<p>示例：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ReactDOM.render(</span><br><span class="line">  &lt;Provider store=&#123;store&#125;&gt;</span><br><span class="line">    &lt;MyRootComponent /&gt;</span><br><span class="line">  &lt;<span class="regexp">/Provider&gt;,</span></span><br><span class="line"><span class="regexp">  rootEl</span></span><br><span class="line"><span class="regexp">)</span></span><br></pre></td></tr></table></figure>
+<p>注意Provider中的子组件只能是一个。</p>
+</li>
+<li><p><code>connect([mapStateToProps], [mapDispatchToProps], [mergeProps], [options])</code></p>
+<p>这是一个函数，返回值是高阶组件。</p>
+<p>参数：</p>
+<ol>
+<li><p><code>[mapStateToProps(state, [ownProps]): stateProps]</code>(Function)带[]表示是可选的，如果这个参数指定了，那么当Redux Store更新的时候，组件会更新。这个参数必须是一个函数，函数的第一个参数是当前Redux Store中的state，第二个参数是传递给高阶组件的参数，返回值是一个字面量对象。这个返回值会作为参数传递给包裹的组件。这个跟我们自己写的一样</p>
+</li>
+<li><p><code>[mapDispatchToProps(dispatch, [ownProps]):dispatchProps</code>(Object or Function) 大部分跟我们自己写的一样，但是在我们写的那个版本中，这个参数只能是函数，这里可以是对象，作为函数时，和我们那里的用法一样，作为对象时，对象的每个属性都是一个函数，这个函数就是action creator，然后会用dispatch函数包裹一层，也就是会自动调用。这么说可能不好理解，其实就是类似使用<code>bindActionCreators</code>，当然我们之前没讲过这个方法。我们直接看个例子吧，我们就把我们用函数写的mapDispatchToProps参数修改为对象。</p>
+<p>就把<code>AddTodoWrapper</code>中的<code>mapDispatchToProps</code>函数改写一下，现在是：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> mapDispatchToProps = <span class="function"><span class="params">dispatch</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        onClick: <span class="function"><span class="params">text</span> =&gt;</span> &#123;</span><br><span class="line">            dispatch(&#123;</span><br><span class="line">                type: <span class="string">'ADD_TODO'</span>,</span><br><span class="line">                text</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>我们可以这么写：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> mapDispatchToProps = &#123;</span><br><span class="line">    onClick: <span class="function"><span class="params">text</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (&#123;</span><br><span class="line">            type: <span class="string">'ADD_TODO'</span>,</span><br><span class="line">            text</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>这样写了之后<code>mapDispatchToProps</code>就是一个对象了，这两种写法是一摸一样的，传递到connect之后，这个对象中的onClick这个action creater函数会自动被dispatch调用。</p>
+</li>
+<li><p>剩下的参数用的不多，感兴趣的同学也是可以查看<a href="https://github.com/reduxjs/react-redux/blob/master/docs/api.md#connectmapstatetoprops-mapdispatchtoprops-mergeprops-options" target="_blank" rel="noopener">官方文档</a></p>
+</li>
+</ol>
+</li>
+</ol>
+<p>官方文档中还有一些示例来展示用法。好了，使用React-Redux还是比较简单的，现在，我们React的相关内容都(React, React Router, React Redux)讲完了，我们还需要把这三者联合起来，才能发挥React的最大威力！</p>
+<p>后面我们就来联合这三者使用。</p>
+
+  </article>
+  <div class="random-toc-area">
+  <button class="btn-hide-toc btn-hide-toc-show" style="display: none" onclick="TOCToggle()">Show TOC</button>
+  <button class="btn-hide-toc btn-hide-toc-hide" onclick="TOCToggle()">Hide TOC</button>
+  <div class="random-toc">
+    <h2>Table of Content</h2>
+    
+  </div>
+</div>
+
+  
+<nav id="pagination">
+  
+
+  
+
+  
+    <a href="/2018/08/25/进一步优化Redux与React结合/" class="next">Next post 进一步优化Redux与React结合 &rarr;</a>
+  
+</nav>
+
+  <!-- JiaThis Button BEGIN -->
+
+<!-- JiaThis Button END -->
+
+
+      
+      
+      
+      <!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zODM1Ny8xNDg4NQ==">
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+      
+      <script src="http://open.iciba.com/huaci/huaci.js" ></script>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<div id="user-card">
+  <div class="center-field">
+    <img class="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg">
+    <p id="description"></p>
+    <ul class="social-icon">
+  
+  
+</ul>
+  </div>
+</div>
+
+
+<div id="btn-view">Hide</div>
+
+<script>
+// is trigger analytics / tongji script
+var isIgnoreHost = false;
+
+if(window && window.location && window.location.host) {
+  isIgnoreHost = ["localhost","127.0.0.1"].some(function(address){
+    return 0 === window.location.host.indexOf(address);
+  });
+}
+
+var isTriggerAnalytics = !( true && isIgnoreHost );
+
+</script>
+
+
+
+
+  
+  
+    <script src="/js/jquery-2.2.3.min.js"></script>
+  
+    <script src="/js/vegas.min.js"></script>
+  
+    <script src="/js/random.js"></script>
+  
+    <script src="/js/highlight.pack.js"></script>
+  
+    <script src="/js/jquery.mousewheel.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox-thumbs.js"></script>
+  
+    <script src="/js/plyr.js"></script>
+  
+
+<script>
+
+  // fancybox
+  var backgroundImages = [];
+  
+  $('#post').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox') || $(this).parent().hasClass('fancybox-thumb')) return;
+      var alt = this.alt || this.title;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'post' + i);
+    });
+  });
+  $(".fancybox").fancybox();
+
+var vegasConfig = {"animation":"random","preload­Image":true,"transition":["slideLeft2","slideRight2","zoomIn","swirLeft","swirRight","flash","flash2"],"timer":true,"delay":5000,"shuffle":true,"count":10};
+var unsplashConfig = {"gravity":"north"};
+// is show background images
+var turnoffBackgroundImage = false;
+
+
+
+  turnoffBackgroundImage = true;
+
+
+var backgroundColor = "34495E";
+
+$(".fancybox-thumb").fancybox({
+  prevEffect: 'none',
+  nextEffect: 'none',
+  helpers: {
+    title: {
+      type: 'outside'
+    },
+    thumbs: {
+      width: 50,
+      height: 50
+    }
+  }
+});
+
+// show video with plyr
+$(".video-container iframe").each(function(i){
+  var url = $(this).attr('src');
+  var id = url.split('/').pop();
+  var plyrContainer = document.createElement('div');
+  plyrContainer.className = 'plyr';
+  var plyrElement = document.createElement('div');
+  plyrElement.dataset.videoId = id;
+  switch(true) {
+    case url.search('youtube.com') >= 0:
+      plyrElement.dataset.type = 'youtube';
+      break;
+    case url.search('vimeo.com') >= 0:
+      plyrElement.dataset.type = 'vimeo';
+      break;
+    default:
+      return;
+  };
+  plyrContainer.appendChild(plyrElement);
+  $(this).parent().html(plyrContainer);
+});
+plyr.setup('.plyr', {iconUrl: '/css/sprite.svg'});
+</script>
+</body>
+</html>
+
