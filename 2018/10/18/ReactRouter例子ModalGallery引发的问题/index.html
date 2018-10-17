@@ -1,0 +1,362 @@
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="">
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <meta name="author" content="Xion">
+  
+  
+  
+  
+    <meta name="description" content="在看React Router 官方的EXAMPLES：Modal Gallery的时候，一开始没有看得太懂，这个例子展示了可以在相同的URL下展示不同的组件，它的原理呢，就是判断你是如何到达某个URL的页面的，比如说：有一个URL是/img/1，我们可以直接在地址栏输入这个URL进入页面，也可以点击一个Link组件进入（这与那个例子的方式不一样，不过原理相同）。
+本来其实这两种方式没有区别，...">
+  
+  <title>ReactRouter例子ModalGallery引发的问题 [ 熊鑫的美好生活 ]</title>
+  
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+  <link rel="stylesheet" href="/css/random.css">
+<link rel="stylesheet" href="/css/vegas.min.css">
+<link rel="stylesheet" href="/css/highlight-railscasts.css">
+<link rel="stylesheet" href="/css/jquery.fancybox.css">
+<link rel="stylesheet" href="/css/iconfont/iconfont.css">
+<link rel="stylesheet" href="/css/jquery.fancybox-thumbs.css">
+<link rel="stylesheet" href="/css/plyr.css">
+  
+</head>
+
+<body>
+<div class="side-navigate hide-area">
+  
+  
+    <div class="item next">
+      <a href="/2018/08/26/使用React-Redux/">
+        <div class="item-icon"></div>
+      </a>
+      <div class="item-title">
+        使用React-Redux
+      </div>
+    </div>
+  
+</div>
+<div id="outer-container" class="hide-area">
+<div id="container">
+  <div id="menu-outer" class="slide-down">
+    <div id="menu-inner">
+      <div id="brand">
+        
+        <a onClick="openUserCard()">
+          <img id="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg"/>
+          <div id="homelink">熊鑫的美好生活</div>
+        </a>
+      </div>
+      <div id="menu-list">
+        <ul>
+        
+        
+          
+            <li>
+          
+            <a href="/">首页</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/archives">文章</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/tags">标签</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/categories">分类</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="https://github.com/313183373">Github</a>
+            
+          </li>
+        
+        </ul>
+      </div>
+      <div id="show-menu">
+        <button>Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="content-outer">
+    <div id="content-inner">
+      <div id="Jihuajiyi" style="display:none"></div>
+      
+      
+  <article id="post">
+    <h1>ReactRouter例子ModalGallery引发的问题</h1>
+    <p class="page-title-sub">
+      <span id = "post-title-date">Created at 2018-10-18</span>
+      
+        <span id = "post-title-updated">Updated at 2018-10-18</span>
+      
+      
+      
+      <span id = "post-title-tags">
+      Tag
+      
+      
+        
+        
+        <a href="/tags/React/">React</a>
+      
+        
+          /
+        
+        
+        <a href="/tags/ReactRouter/">ReactRouter</a>
+      
+      </span>
+      
+    </p>
+    
+    <p>在看React Router 官方的EXAMPLES：Modal Gallery的时候，一开始没有看得太懂，这个例子展示了可以在<strong>相同的URL</strong>下展示<strong>不同的组件</strong>，它的原理呢，就是判断你是如何到达某个URL的页面的，比如说：有一个URL是<code>/img/1</code>，我们可以直接在地址栏输入这个URL进入页面，也可以点击一个<code>Link</code>组件进入（这与那个例子的方式不一样，不过原理相同）。</p>
+<p>本来其实这两种方式没有区别，关键在于如果通过<code>Link</code>组件进入，我们可以给<code>Link</code>组件的<code>to</code>属性赋值为一个<code>object</code>，为什么是<code>object</code>呢？因为<code>object</code>可以传递一个<code>state</code>到<code>location</code>，我们在这里做一个标记，然后就可以判断是从哪里进入页面的，如果我们可以在<code>location</code> 中得到我们传递的<code>state</code>，那我们就知道是从<code>Link</code>进来的，然后我们就渲染不同的界面。</p>
+<p>原理就是这样😂，本来很简单的，只不过那个例子中有一些干扰的东西，让我反应了半天🤪，现在我们来看看那个例子吧！</p>
+<p>先给大家演示一下这个小程序的样子：</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tNbRwgy1fwbosnnzr3g30c80ezdjh.gif" alt="1"></p>
+<p>大家注意看url的变化，在主界面点击<code>Image</code>的时候，会是全屏幕显示那个背景色的图片。但是如果进入先到<code>Gallery</code>中，然后点击<code>Gallery</code>中的那些<code>Image</code>，就会变成在一个<code>Modal</code>中显示，而且原来的<code>Gallery</code>界面也还在。是不是很神奇。</p>
+<p>接下来我们先来自己看看如何实现这个效果（我们不用写CSS，简单的写一个ID数字就可以，很轻松）。</p>
+<p>我们先写一个普通版本的，也就是同一个的URL对应相同的页面。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;Link, Route&#125; <span class="keyword">from</span> <span class="string">'react-router-dom'</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">App</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            &lt;div&gt;</span><br><span class="line">                &lt;Route exact path=<span class="string">'/'</span> component=&#123;Home&#125;/&gt;</span><br><span class="line">                &lt;Route path=<span class="string">'/img/:id'</span> component=&#123;Img&#125;/&gt;</span><br><span class="line">                &lt;Route path=<span class="string">'/gallery'</span> component=&#123;Gallery&#125;/&gt;</span><br><span class="line">            &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">        )</span></span><br><span class="line"><span class="regexp">    &#125;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">const Home = () =&gt; &#123;</span></span><br><span class="line"><span class="regexp">    return (</span></span><br><span class="line"><span class="regexp">        &lt;React.Fragment&gt;</span></span><br><span class="line"><span class="regexp">            &lt;Link to='/g</span>allery<span class="string">'&gt;Visit the Gallery&lt;/Link&gt;</span></span><br><span class="line"><span class="string">            &lt;h1&gt;Images&lt;/h1&gt;</span></span><br><span class="line"><span class="string">            &lt;ul&gt;</span></span><br><span class="line"><span class="string">                &lt;li&gt;&lt;Link to='</span>/img/<span class="number">0</span><span class="string">'&gt;0&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">                &lt;li&gt;&lt;Link to='</span>/img/<span class="number">1</span><span class="string">'&gt;1&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;/ul&gt;</span></span><br><span class="line"><span class="string">        &lt;/React.Fragment&gt;</span></span><br><span class="line"><span class="string">    )</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">const Img = (&#123;match&#125;) =&gt; &#123;</span></span><br><span class="line"><span class="string">    return &lt;h1&gt;&#123;match.params.id&#125;&lt;/h1&gt;</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">const Gallery = () =&gt; &#123;</span></span><br><span class="line"><span class="string">    return (</span></span><br><span class="line"><span class="string">        &lt;ul&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">0</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;0&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">1</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;1&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">2</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;2&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">3</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;3&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">        &lt;/ul&gt;</span></span><br><span class="line"><span class="string">    )</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">export default App;</span></span><br></pre></td></tr></table></figure>
+<p>现在这个程序很简单，我们在<code>Home</code>和<code>Gallery</code>组件中都加入了<code>Link</code>组件，都是去<code>/img/:id</code>的，注意我们在<code>Galler</code>中的<code>Link</code>是带有<code>state</code>的，但是我们现在还没有使用。下面我们将利用这个<code>state</code>来实现不同的渲染。我们可以在那个<code>&lt;Route path=&#39;/img/:id&#39;&gt;</code>中判断当前的<code>location</code>的<code>state</code>是什么来判断我们是否从Gallery中的Link进入，从而实现我们想要的效果。</p>
+<p>但是目前<code>App</code>组件是无法获取到<code>location</code>的，因为它不是<code>Route</code>渲染的，我们可以利用<code>withRouter</code>高阶组件来让它可以获取到当前的<code>location</code>。</p>
+<p>完整代码如下：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;Link, Route, withRouter&#125; <span class="keyword">from</span> <span class="string">'react-router-dom'</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">App</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;location&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            &lt;div&gt;</span><br><span class="line">                &lt;Route exact path=<span class="string">'/'</span> component=&#123;Home&#125;/&gt;</span><br><span class="line">                &lt;Route path=<span class="string">'/img/:id'</span> component=&#123;(location.state &amp;&amp; location.state.fromGallery) &amp;&amp; Modal || Img&#125;/&gt;</span><br><span class="line">                &lt;Route path=<span class="string">'/gallery'</span> component=&#123;Gallery&#125;/&gt;</span><br><span class="line">            &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">        )</span></span><br><span class="line"><span class="regexp">    &#125;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">const Home = () =&gt; &#123;</span></span><br><span class="line"><span class="regexp">    return (</span></span><br><span class="line"><span class="regexp">        &lt;React.Fragment&gt;</span></span><br><span class="line"><span class="regexp">            &lt;Link to='/g</span>allery<span class="string">'&gt;Visit the Gallery&lt;/Link&gt;</span></span><br><span class="line"><span class="string">            &lt;h1&gt;Images&lt;/h1&gt;</span></span><br><span class="line"><span class="string">            &lt;ul&gt;</span></span><br><span class="line"><span class="string">                &lt;li&gt;&lt;Link to='</span>/img/<span class="number">0</span><span class="string">'&gt;0&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">                &lt;li&gt;&lt;Link to='</span>/img/<span class="number">1</span><span class="string">'&gt;1&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;/ul&gt;</span></span><br><span class="line"><span class="string">        &lt;/React.Fragment&gt;</span></span><br><span class="line"><span class="string">    )</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">const Img = (&#123;match&#125;) =&gt; &#123;</span></span><br><span class="line"><span class="string">    return &lt;h1&gt;&#123;match.params.id&#125;&lt;/h1&gt;</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">const Modal = (&#123;match, history&#125;) =&gt; &#123;</span></span><br><span class="line"><span class="string">    return (</span></span><br><span class="line"><span class="string">        &lt;div style=&#123;&#123;</span></span><br><span class="line"><span class="string">            position: '</span>absolute<span class="string">',</span></span><br><span class="line"><span class="string">            left: 0,</span></span><br><span class="line"><span class="string">            right: 0,</span></span><br><span class="line"><span class="string">            top: 0,</span></span><br><span class="line"><span class="string">            bottom: 0,</span></span><br><span class="line"><span class="string">            backgroundColor: '</span>rgba(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.15</span>)<span class="string">',</span></span><br><span class="line"><span class="string">        &#125;&#125; onClick=&#123;history.goBack&#125;&gt;</span></span><br><span class="line"><span class="string">            &lt;div style=&#123;&#123;</span></span><br><span class="line"><span class="string">                position: '</span>absolute<span class="string">',</span></span><br><span class="line"><span class="string">                top: 200,</span></span><br><span class="line"><span class="string">                left: '</span><span class="number">20</span>%<span class="string">',</span></span><br><span class="line"><span class="string">                right: '</span><span class="number">20</span>%<span class="string">',</span></span><br><span class="line"><span class="string">                border: '</span><span class="number">1</span>px solid black<span class="string">',</span></span><br><span class="line"><span class="string">                backgroundColor: '</span>white<span class="string">'</span></span><br><span class="line"><span class="string">            &#125;&#125;&gt;</span></span><br><span class="line"><span class="string">                &lt;h3&gt;&#123;match.params.id&#125;&lt;/h3&gt;</span></span><br><span class="line"><span class="string">            &lt;/div&gt;</span></span><br><span class="line"><span class="string">        &lt;/div&gt;</span></span><br><span class="line"><span class="string">    )</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">const Gallery = () =&gt; &#123;</span></span><br><span class="line"><span class="string">    return (</span></span><br><span class="line"><span class="string">        &lt;ul&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">0</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;0&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">1</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;1&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">2</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;2&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">3</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;3&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">        &lt;/ul&gt;</span></span><br><span class="line"><span class="string">    )</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">export default withRouter(App);</span></span><br></pre></td></tr></table></figure>
+<p>主要看那个<code>Route</code>的写法<code>&lt;Route path=&#39;/img/:id&#39; component={(location.state &amp;&amp; location.state.fromGallery) &amp;&amp; Modal || Img}/&gt;</code></p>
+<p>如果是从<code>Gallery</code>进来的，我们就渲染<code>Modal</code>组件，现在我们来看看效果！</p>
+<p><img src="https://ws2.sinaimg.cn/large/006tNbRwgy1fwbosjylqpg30bi0glaew.gif" alt="1"></p>
+<p>可以看到我们实现了在同一个URL下渲染不同的界面的功能，但是感觉和官网的例子有点不一样，官网在显示<code>Modal</code>组件的时候，<code>Gallery</code>其实是可以看到的，这是怎么做到的呢？这就是那个例子中迷惑我的地方😂，那个例子中有一些和我们刚才讲的东西无关的代码，我不知道有什么用，后来我知道了，其实人家注释也写了，我来给大家慢慢道来，要实现那个效果，得用到<code>Switch</code>组件的，我们都知道<code>Switch</code>组件可以根据当前的<code>location</code>来匹配其中的一个<code>Route</code>来渲染，但是我还不知道其实<code>Switch</code>可以手动给<code>location</code>让它去匹配，这就是关键，我们可以把原来那三个<code>Route</code>用一个<code>Switch</code>包起来，同样当<code>location</code>有<code>state</code>的时候，我们可以给<code>Switch</code>一个<code>location</code>，让它渲染<code>Gallery</code>，同时呢，我们在<code>Switch</code>外，再写一个<code>Route</code>，同样匹配<code>/img/:id</code>，渲染<code>Modal</code>组件，这样我们就实现了渲染<code>Modal</code>的时候同时渲染Gallery了，来看看吧。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;Link, Route, Switch, withRouter&#125; <span class="keyword">from</span> <span class="string">'react-router-dom'</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">App</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;location&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            &lt;div&gt;</span><br><span class="line">                <span class="comment">// 加一个Switch组件，在不是fromGallery状态下，我们使用当前的location，否则gallery，渲染Gallery组件</span></span><br><span class="line">                &lt;Switch location=&#123;(location.state &amp;&amp; location.state.fromGallery) &amp;&amp; &#123;<span class="attr">pathname</span>: <span class="string">'/gallery'</span>&#125; || location&#125;&gt;</span><br><span class="line">                    &lt;Route exact path=<span class="string">'/'</span> component=&#123;Home&#125;/&gt;</span><br><span class="line">                    <span class="comment">// 这里就不需要判断是否从Gallery来了，因为是的话也不会匹配到这个Route</span></span><br><span class="line">                    &lt;Route path=<span class="string">'/img/:id'</span> component=&#123;Img&#125;/&gt;</span><br><span class="line">                    &lt;Route path=<span class="string">'/gallery'</span> component=&#123;Gallery&#125;/&gt;</span><br><span class="line">                &lt;<span class="regexp">/Switch&gt;</span></span><br><span class="line"><span class="regexp">                /</span><span class="regexp">/ 补充Route，渲染Modal</span></span><br><span class="line"><span class="regexp">                &lt;Route path='/img</span><span class="regexp">/:id' component=&#123;location.state &amp;&amp; location.state.fromGallery &amp;&amp; Modal&#125;/</span>&gt;</span><br><span class="line">            &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">        )</span></span><br><span class="line"><span class="regexp">    &#125;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">const Home = () =&gt; &#123;</span></span><br><span class="line"><span class="regexp">    return (</span></span><br><span class="line"><span class="regexp">        &lt;React.Fragment&gt;</span></span><br><span class="line"><span class="regexp">            &lt;Link to='/g</span>allery<span class="string">'&gt;Visit the Gallery&lt;/Link&gt;</span></span><br><span class="line"><span class="string">            &lt;h1&gt;Images&lt;/h1&gt;</span></span><br><span class="line"><span class="string">            &lt;ul&gt;</span></span><br><span class="line"><span class="string">                &lt;li&gt;&lt;Link to='</span>/img/<span class="number">0</span><span class="string">'&gt;0&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">                &lt;li&gt;&lt;Link to='</span>/img/<span class="number">1</span><span class="string">'&gt;1&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;/ul&gt;</span></span><br><span class="line"><span class="string">        &lt;/React.Fragment&gt;</span></span><br><span class="line"><span class="string">    )</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">const Img = (&#123;match&#125;) =&gt; &#123;</span></span><br><span class="line"><span class="string">    return &lt;h1&gt;&#123;match.params.id&#125;&lt;/h1&gt;</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">const Modal = (&#123;match, history&#125;) =&gt; &#123;</span></span><br><span class="line"><span class="string">    return (</span></span><br><span class="line"><span class="string">        &lt;div style=&#123;&#123;</span></span><br><span class="line"><span class="string">            position: '</span>absolute<span class="string">',</span></span><br><span class="line"><span class="string">            left: 0,</span></span><br><span class="line"><span class="string">            right: 0,</span></span><br><span class="line"><span class="string">            top: 0,</span></span><br><span class="line"><span class="string">            bottom: 0,</span></span><br><span class="line"><span class="string">            backgroundColor: '</span>rgba(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.15</span>)<span class="string">',</span></span><br><span class="line"><span class="string">        &#125;&#125; onClick=&#123;history.goBack&#125;&gt;</span></span><br><span class="line"><span class="string">            &lt;div style=&#123;&#123;</span></span><br><span class="line"><span class="string">                position: '</span>absolute<span class="string">',</span></span><br><span class="line"><span class="string">                top: 200,</span></span><br><span class="line"><span class="string">                left: '</span><span class="number">20</span>%<span class="string">',</span></span><br><span class="line"><span class="string">                right: '</span><span class="number">20</span>%<span class="string">',</span></span><br><span class="line"><span class="string">                border: '</span><span class="number">1</span>px solid black<span class="string">',</span></span><br><span class="line"><span class="string">                backgroundColor: '</span>white<span class="string">'</span></span><br><span class="line"><span class="string">            &#125;&#125;&gt;</span></span><br><span class="line"><span class="string">                &lt;h3&gt;&#123;match.params.id&#125;&lt;/h3&gt;</span></span><br><span class="line"><span class="string">            &lt;/div&gt;</span></span><br><span class="line"><span class="string">        &lt;/div&gt;</span></span><br><span class="line"><span class="string">    )</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">const Gallery = () =&gt; &#123;</span></span><br><span class="line"><span class="string">    return (</span></span><br><span class="line"><span class="string">        &lt;ul&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">0</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;0&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">1</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;1&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">2</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;2&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">3</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;3&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">        &lt;/ul&gt;</span></span><br><span class="line"><span class="string">    )</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">export default withRouter(App);</span></span><br></pre></td></tr></table></figure>
+<p>好的，目前我们已经实现了和官方例子一样的效果了，但是如果大家看了官方的代码的话，还是可以看到和我们程序的区别的，区别在于，我们这个程序是当从<code>Gallery</code>点进来的时候，把<code>Switch</code>的<code>location</code>给写死成<code>gallery</code>了，这样是不好的，如果我们有多个入口都可以进入那种显示<code>Modal</code>的状态，那么我们这么写就不行了，我们得动态的存储进入<code>Modal</code>状态的前一个状态的<code>location</code>，不太好理解？我们先来看官方的代码</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;Link, Route, Switch, withRouter&#125; <span class="keyword">from</span> <span class="string">'react-router-dom'</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">App</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">    previousLocation = <span class="keyword">this</span>.props.location;</span><br><span class="line"></span><br><span class="line">    componentWillUpdate(nextProps) &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;location&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="comment">// set previousLocation if props.location is not modal</span></span><br><span class="line">        <span class="keyword">if</span> (</span><br><span class="line">            nextProps.history.action !== <span class="string">"POP"</span> &amp;&amp;</span><br><span class="line">            (!location.state || !location.state.fromGallery)</span><br><span class="line">        ) &#123;</span><br><span class="line">            <span class="keyword">this</span>.previousLocation = <span class="keyword">this</span>.props.location;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;location&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="keyword">const</span> isModal = !!(</span><br><span class="line">            location.state &amp;&amp;</span><br><span class="line">            location.state.fromGallery &amp;&amp;</span><br><span class="line">            <span class="keyword">this</span>.previousLocation !== location</span><br><span class="line">        ); <span class="comment">// not initial render</span></span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            &lt;div&gt;</span><br><span class="line">                &lt;Switch</span><br><span class="line">                    location=&#123;isModal ? <span class="keyword">this</span>.previousLocation : location&#125;&gt;</span><br><span class="line">                    &lt;Route exact path=<span class="string">'/'</span> component=&#123;Home&#125;/&gt;</span><br><span class="line">                    &lt;Route path=<span class="string">'/img/:id'</span> component=&#123;Img&#125;/&gt;</span><br><span class="line">                    &lt;Route path=<span class="string">'/gallery'</span> component=&#123;Gallery&#125;/&gt;</span><br><span class="line">                    &lt;Route path=<span class="string">'/gallery2'</span> component=&#123;GalleryTwo&#125;/&gt;</span><br><span class="line">                &lt;<span class="regexp">/Switch&gt;</span></span><br><span class="line"><span class="regexp">                &lt;Route path='/img</span><span class="regexp">/:id'</span></span><br><span class="line"><span class="regexp">                       component=&#123;isModal ? Modal : null&#125;/</span>&gt;</span><br><span class="line">            &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">        )</span></span><br><span class="line"><span class="regexp">    &#125;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">const Home = () =&gt; &#123;</span></span><br><span class="line"><span class="regexp">    return (</span></span><br><span class="line"><span class="regexp">        &lt;React.Fragment&gt;</span></span><br><span class="line"><span class="regexp">            &lt;Link to='/g</span>allery<span class="string">'&gt;Visit the Gallery&lt;/Link&gt;</span></span><br><span class="line"><span class="string">            &lt;Link to='</span>/gallery2<span class="string">'&gt;Visit the GalleryTwo&lt;/Link&gt;</span></span><br><span class="line"><span class="string">            &lt;h1&gt;Images&lt;/h1&gt;</span></span><br><span class="line"><span class="string">            &lt;ul&gt;</span></span><br><span class="line"><span class="string">                &lt;li&gt;&lt;Link to='</span>/img/<span class="number">0</span><span class="string">'&gt;0&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">                &lt;li&gt;&lt;Link to='</span>/img/<span class="number">1</span><span class="string">'&gt;1&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;/ul&gt;</span></span><br><span class="line"><span class="string">        &lt;/React.Fragment&gt;</span></span><br><span class="line"><span class="string">    )</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">const Img = (&#123;match&#125;) =&gt; &#123;</span></span><br><span class="line"><span class="string">    return &lt;h1&gt;&#123;match.params.id&#125;&lt;/h1&gt;</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">const Modal = (&#123;match, history&#125;) =&gt; &#123;</span></span><br><span class="line"><span class="string">    return (</span></span><br><span class="line"><span class="string">        &lt;div style=&#123;&#123;</span></span><br><span class="line"><span class="string">            position: '</span>absolute<span class="string">',</span></span><br><span class="line"><span class="string">            left: 0,</span></span><br><span class="line"><span class="string">            right: 0,</span></span><br><span class="line"><span class="string">            top: 0,</span></span><br><span class="line"><span class="string">            bottom: 0,</span></span><br><span class="line"><span class="string">            backgroundColor: '</span>rgba(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.15</span>)<span class="string">',</span></span><br><span class="line"><span class="string">        &#125;&#125; onClick=&#123;history.goBack&#125;&gt;</span></span><br><span class="line"><span class="string">            &lt;div style=&#123;&#123;</span></span><br><span class="line"><span class="string">                position: '</span>absolute<span class="string">',</span></span><br><span class="line"><span class="string">                top: 200,</span></span><br><span class="line"><span class="string">                left: '</span><span class="number">20</span>%<span class="string">',</span></span><br><span class="line"><span class="string">                right: '</span><span class="number">20</span>%<span class="string">',</span></span><br><span class="line"><span class="string">                border: '</span><span class="number">1</span>px solid black<span class="string">',</span></span><br><span class="line"><span class="string">                backgroundColor: '</span>white<span class="string">'</span></span><br><span class="line"><span class="string">            &#125;&#125;&gt;</span></span><br><span class="line"><span class="string">                &lt;h3&gt;&#123;match.params.id&#125;&lt;/h3&gt;</span></span><br><span class="line"><span class="string">            &lt;/div&gt;</span></span><br><span class="line"><span class="string">        &lt;/div&gt;</span></span><br><span class="line"><span class="string">    )</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">const Gallery = () =&gt; &#123;</span></span><br><span class="line"><span class="string">    return (</span></span><br><span class="line"><span class="string">        &lt;ul&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">0</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;0&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">1</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;1&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">2</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;2&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">3</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;3&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">        &lt;/ul&gt;</span></span><br><span class="line"><span class="string">    )</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">const GalleryTwo = () =&gt; &#123;</span></span><br><span class="line"><span class="string">    return (</span></span><br><span class="line"><span class="string">        &lt;React.Fragment&gt;</span></span><br><span class="line"><span class="string">            &lt;h1&gt;我是GalleryTwo&lt;/h1&gt;</span></span><br><span class="line"><span class="string">            &lt;ul&gt;</span></span><br><span class="line"><span class="string">                &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">0</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;0&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">                &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">1</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;1&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">                &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">2</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;2&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">                &lt;li&gt;&lt;Link to=&#123;&#123;pathname: '</span>/img/<span class="number">3</span><span class="string">', state: &#123;fromGallery: true&#125;&#125;&#125;&gt;3&lt;/Link&gt;&lt;/li&gt;</span></span><br><span class="line"><span class="string">            &lt;/ul&gt;</span></span><br><span class="line"><span class="string">        &lt;/React.Fragment&gt;</span></span><br><span class="line"><span class="string">    )</span></span><br><span class="line"><span class="string">&#125;;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">export default withRouter(App);</span></span><br></pre></td></tr></table></figure>
+<p>其中重要的部分是<code>App</code>组件初始化了一个<code>previousLocation</code>属性，值就是当前的路径，其实这个地方有点问题的，因为我们初次渲染整个组件的时候，<code>previousLocation</code>讲道理应该是没有的，这里初始化为当前的<code>Location</code>，待会会给大家看会有什么问题😎</p>
+<p>然后最关键的一点的是<code>componentWillUpdate</code>生命周期方法，这里判断只要当前不是<code>Modal</code>状态和下一个操作不是<code>POP</code>（这里我还不太理解，我暂时认为只有返回操作会是<code>POP</code>）就会把当前的<code>location</code>赋值给<code>previousLocation</code>，这就记录了上一个<code>location</code> 了，但是这样和我之前分析的意思不太一样，我们并不是每个<code>previousLocation</code>都需要记录，只需要记录下一个<code>location</code>是<code>Modal</code>状态就可以了，不过效果是确实实现了，我们添加了一个<code>GalleryTwo</code>组件，就是另一个<code>Modal</code>状态的入口，来看看效果</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tNbRwgy1fwboslaattg30a20c6wk6.gif" alt="1"></p>
+<p>看起来没有问题，但是我们的<code>previousLocation</code>修改的次数很多，不是很好，记录了很多没有用的东西，我们在<code>componentWillUpdate</code>方法的<code>if</code>中打印修改的信息来查看修改的次数</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">componentWillUpdate(nextProps) &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123;location&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">    <span class="comment">// set previousLocation if props.location is not modal</span></span><br><span class="line">    <span class="keyword">if</span> (</span><br><span class="line">        nextProps.history.action !== <span class="string">"POP"</span> &amp;&amp;</span><br><span class="line">        (!location.state || !location.state.fromGallery)</span><br><span class="line">    ) &#123;</span><br><span class="line">        <span class="keyword">this</span>.previousLocation = <span class="keyword">this</span>.props.location;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'update previousLocation'</span>, <span class="keyword">this</span>.previousLocation);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://ws4.sinaimg.cn/large/006tNbRwgy1fwboslsm7og30a20c6k14.gif" alt="1"></p>
+<p>可以看到记录了无用的previousLocation</p>
+<p>接下来我们得优化一下，首先我们得只记录下一个<code>location</code>是Modal状态的<code>previousLocation</code>，修改componentWillUpdate方法</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">componentWillUpdate(nextProps) &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123;location&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">    <span class="comment">// set previousLocation if props.location is not modal</span></span><br><span class="line">    <span class="keyword">if</span> (</span><br><span class="line">        nextProps.history.action !== <span class="string">"POP"</span> &amp;&amp;</span><br><span class="line">        (!location.state || !location.state.fromGallery) &amp;&amp;</span><br><span class="line">        nextProps.location.state &amp;&amp; nextProps.location.state.fromGallery</span><br><span class="line">    ) &#123;</span><br><span class="line">        <span class="keyword">this</span>.previousLocation = <span class="keyword">this</span>.props.location;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'update previousLocation'</span>, <span class="keyword">this</span>.previousLocation);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>现在好了一些，还有一个情况我们也不记录，就是<code>previousLocation</code>和当前的<code>location</code>本来就是想等的，请看</p>
+<p><img src="https://ws4.sinaimg.cn/large/006tNbRwgy1fwbosmpqxug30a20c6wgi.gif" alt="1"></p>
+<p>这里我们点击两次0，它记录了两次一样的<code>previousLocation</code>，这也是可以避免的，继续修改<code>componentWillUpdate</code>方法</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">componentWillUpdate(nextProps) &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123;location&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">    <span class="comment">// set previousLocation if props.location is not modal</span></span><br><span class="line">    <span class="keyword">if</span> (</span><br><span class="line">        nextProps.history.action !== <span class="string">"POP"</span> &amp;&amp;</span><br><span class="line">        (!location.state || !location.state.fromGallery) &amp;&amp;</span><br><span class="line">        nextProps.location.state &amp;&amp; nextProps.location.state.fromGallery &amp;&amp;</span><br><span class="line">        <span class="keyword">this</span>.previousLocation.key !== <span class="keyword">this</span>.props.location.key</span><br><span class="line">    ) &#123;</span><br><span class="line">        <span class="keyword">this</span>.previousLocation = <span class="keyword">this</span>.props.location;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'update previousLocation'</span>, <span class="keyword">this</span>.previousLocation);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里比较两个<code>location</code>的<code>key</code>是否相等，好啦，现在几乎已经没有问题了</p>
+<p>我本来也是这么认为的，直到我做了一个一般做不到的操作，就是在<code>Modal</code>框显示的同时，去点击<code>Gallery</code>页面的另一个<code>Link</code>（这个操作一般是不能做到的，因为Modal显示的时候有一个遮罩层，点击肯定是点击到遮罩层，触发返回操作，但是有<code>Viumium</code>插件，用它可以点击到<code>Link</code>，我就作死了一下）看效果</p>
+<p><img src="https://ws3.sinaimg.cn/large/006tNbRwgy1fwbosm8to5g30a20c6q6j.gif" alt="1"></p>
+<p>效果好像也没有问题，对吧，尽管有这种非常人的操作，但是也不会有问题，这个是因为我们只在非<code>Modal</code>状态设置<code>previousLocation</code>，好的，但是如果我们在<code>Modal</code>状态下点击其他<code>Link</code>，然后刷新一下，会有什么好玩的事情发生呢？来看吧！</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tNbRwgy1fwboskc7j6g30a20c640x.gif" alt="1"></p>
+<p>注意看刷新之后，原本是<code>Modal</code>状态下的<code>/img/2</code>，变成了正常状态的<code>/img/2</code>，这也没有问题，但是我们再返回一下，就出现问题了，一个奇怪的界面出现了，正常状态的<code>/img/2</code>和Modal状态的<code>/img/1</code>同时出现，这是为什么呢，因为刷新之后，其实<code>location</code>的<code>state</code>是保存着的，开始的<code>/img/2</code>是正常的，是因为<code>render</code>方法判断了<code>previousLocation</code>和当前<code>location</code>是相等时，就不是<code>Modal</code>状态，渲染了正常的<code>/img/2</code>（这就是我之前说的用当前location初始化previousLocation会出现的问题），一旦我们执行返回操作，<code>previousLocation</code>和<code>location</code>就不等了，而此时<code>location</code>的<code>state</code>也存在，就判断为了<code>Modal</code>状态，然后呢<code>previousLocation</code>是<code>/img/2</code>，也就出现了2和1同时出现的状态。</p>
+<p>要想解决这个问题，我们就不要一开始就初始化<code>previousLocation</code>，而是在需要previousLocation的时候在赋值就可以了，来看</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">App</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">    componentWillUpdate(nextProps) &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;location&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="comment">// set previousLocation if props.location is not modal</span></span><br><span class="line">        <span class="keyword">if</span> (</span><br><span class="line">            nextProps.history.action !== <span class="string">"POP"</span> &amp;&amp;</span><br><span class="line">            (!location.state || !location.state.fromGallery) &amp;&amp;</span><br><span class="line">            nextProps.location.state &amp;&amp; nextProps.location.state.fromGallery &amp;&amp;</span><br><span class="line">            ((<span class="keyword">this</span>.previousLocation &amp;&amp; <span class="keyword">this</span>.previousLocation.key !== <span class="keyword">this</span>.props.location.key) || !<span class="keyword">this</span>.previousLocation)</span><br><span class="line">        ) &#123;</span><br><span class="line">            <span class="keyword">this</span>.previousLocation = <span class="keyword">this</span>.props.location;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">'update previousLocation'</span>, <span class="keyword">this</span>.previousLocation);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;location&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="keyword">const</span> isModal = !!(</span><br><span class="line">            location.state &amp;&amp;</span><br><span class="line">            location.state.fromGallery &amp;&amp;</span><br><span class="line">            <span class="keyword">this</span>.previousLocation</span><br><span class="line">        ); <span class="comment">// not initial render</span></span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            &lt;div&gt;</span><br><span class="line">                &lt;Switch</span><br><span class="line">                    location=&#123;isModal ? <span class="keyword">this</span>.previousLocation : location&#125;&gt;</span><br><span class="line">                    &lt;Route exact path=<span class="string">'/'</span> component=&#123;Home&#125;/&gt;</span><br><span class="line">                    &lt;Route path=<span class="string">'/img/:id'</span> component=&#123;Img&#125;/&gt;</span><br><span class="line">                    &lt;Route path=<span class="string">'/gallery'</span> component=&#123;Gallery&#125;/&gt;</span><br><span class="line">                    &lt;Route path=<span class="string">'/gallery2'</span> component=&#123;GalleryTwo&#125;/&gt;</span><br><span class="line">                &lt;<span class="regexp">/Switch&gt;</span></span><br><span class="line"><span class="regexp">                &lt;Route path='/img</span><span class="regexp">/:id'</span></span><br><span class="line"><span class="regexp">                       component=&#123;isModal ? Modal : null&#125;/</span>&gt;</span><br><span class="line">            &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">        )</span></span><br><span class="line"><span class="regexp">    &#125;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>去掉了<code>previousLocation</code>的初始化，然后<code>isModal</code>的判断改了一下，这样的话，我们刷新之后返回，都会是正常的了，看看吧！</p>
+<p><img src="https://ws3.sinaimg.cn/large/006tNbRwgy1fwboso4lw4g30a20c60wy.gif" alt="1"></p>
+<p>这就完美了，所以，这个小小的逻辑，其实有很多可以推敲的地方，不过如果不考虑那种不正常的操作，会简单一些😂</p>
+
+  </article>
+  <div class="random-toc-area">
+  <button class="btn-hide-toc btn-hide-toc-show" style="display: none" onclick="TOCToggle()">Show TOC</button>
+  <button class="btn-hide-toc btn-hide-toc-hide" onclick="TOCToggle()">Hide TOC</button>
+  <div class="random-toc">
+    <h2>Table of Content</h2>
+    
+  </div>
+</div>
+
+  
+<nav id="pagination">
+  
+
+  
+
+  
+    <a href="/2018/08/26/使用React-Redux/" class="next">Next post 使用React-Redux &rarr;</a>
+  
+</nav>
+
+  <!-- JiaThis Button BEGIN -->
+
+<!-- JiaThis Button END -->
+
+
+      
+      
+      
+      <!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zODM1Ny8xNDg4NQ==">
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+      
+      <script src="http://open.iciba.com/huaci/huaci.js" ></script>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<div id="user-card">
+  <div class="center-field">
+    <img class="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg">
+    <p id="description"></p>
+    <ul class="social-icon">
+  
+  
+</ul>
+  </div>
+</div>
+
+
+<div id="btn-view">Hide</div>
+
+<script>
+// is trigger analytics / tongji script
+var isIgnoreHost = false;
+
+if(window && window.location && window.location.host) {
+  isIgnoreHost = ["localhost","127.0.0.1"].some(function(address){
+    return 0 === window.location.host.indexOf(address);
+  });
+}
+
+var isTriggerAnalytics = !( true && isIgnoreHost );
+
+</script>
+
+
+
+
+  
+  
+    <script src="/js/jquery-2.2.3.min.js"></script>
+  
+    <script src="/js/vegas.min.js"></script>
+  
+    <script src="/js/random.js"></script>
+  
+    <script src="/js/highlight.pack.js"></script>
+  
+    <script src="/js/jquery.mousewheel.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox-thumbs.js"></script>
+  
+    <script src="/js/plyr.js"></script>
+  
+
+<script>
+
+  // fancybox
+  var backgroundImages = [];
+  
+  $('#post').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox') || $(this).parent().hasClass('fancybox-thumb')) return;
+      var alt = this.alt || this.title;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'post' + i);
+    });
+  });
+  $(".fancybox").fancybox();
+
+var vegasConfig = {"animation":"random","preload­Image":true,"transition":["slideLeft2","slideRight2","zoomIn","swirLeft","swirRight","flash","flash2"],"timer":true,"delay":5000,"shuffle":true,"count":10};
+var unsplashConfig = {"gravity":"north"};
+// is show background images
+var turnoffBackgroundImage = false;
+
+
+
+  turnoffBackgroundImage = true;
+
+
+var backgroundColor = "34495E";
+
+$(".fancybox-thumb").fancybox({
+  prevEffect: 'none',
+  nextEffect: 'none',
+  helpers: {
+    title: {
+      type: 'outside'
+    },
+    thumbs: {
+      width: 50,
+      height: 50
+    }
+  }
+});
+
+// show video with plyr
+$(".video-container iframe").each(function(i){
+  var url = $(this).attr('src');
+  var id = url.split('/').pop();
+  var plyrContainer = document.createElement('div');
+  plyrContainer.className = 'plyr';
+  var plyrElement = document.createElement('div');
+  plyrElement.dataset.videoId = id;
+  switch(true) {
+    case url.search('youtube.com') >= 0:
+      plyrElement.dataset.type = 'youtube';
+      break;
+    case url.search('vimeo.com') >= 0:
+      plyrElement.dataset.type = 'vimeo';
+      break;
+    default:
+      return;
+  };
+  plyrContainer.appendChild(plyrElement);
+  $(this).parent().html(plyrContainer);
+});
+plyr.setup('.plyr', {iconUrl: '/css/sprite.svg'});
+</script>
+</body>
+</html>
+
