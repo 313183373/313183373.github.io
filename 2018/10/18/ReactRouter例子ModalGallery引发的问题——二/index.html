@@ -1,0 +1,331 @@
+
+
+
+
+
+
+
+<!doctype html>
+<html lang="">
+<head>
+  <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <meta name="author" content="Xion">
+  
+  
+  
+  
+    <meta name="description" content="在上一篇文章中，有一些东西还没有讲清楚
+
+为什么使用组件的属性而不是状态来存储previousLocation
+componentWillUpdate方法已经是官方不推荐使用的生命周期了，在下一个大版本可能会被移除掉
+
+针对第一点，我认为完全是可以使用状态的，而且状态也有好处，就是他会触发更新组件，如果它会触发更新，我们也就不需要使用componentWillUpdate生命周期了，我们在c...">
+  
+  <title>ReactRouter例子ModalGallery引发的问题——二 [ 熊鑫的美好生活 ]</title>
+  
+  
+    <link rel="shortcut icon" href="/favicon.ico">
+  
+  
+  <link rel="stylesheet" href="/css/random.css">
+<link rel="stylesheet" href="/css/vegas.min.css">
+<link rel="stylesheet" href="/css/highlight-railscasts.css">
+<link rel="stylesheet" href="/css/jquery.fancybox.css">
+<link rel="stylesheet" href="/css/iconfont/iconfont.css">
+<link rel="stylesheet" href="/css/jquery.fancybox-thumbs.css">
+<link rel="stylesheet" href="/css/plyr.css">
+  
+</head>
+
+<body>
+<div class="side-navigate hide-area">
+  
+  
+    <div class="item next">
+      <a href="/2018/10/18/ReactRouter例子ModalGallery引发的问题/">
+        <div class="item-icon"></div>
+      </a>
+      <div class="item-title">
+        ReactRouter例子ModalGallery引发的问题
+      </div>
+    </div>
+  
+</div>
+<div id="outer-container" class="hide-area">
+<div id="container">
+  <div id="menu-outer" class="slide-down">
+    <div id="menu-inner">
+      <div id="brand">
+        
+        <a onClick="openUserCard()">
+          <img id="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg"/>
+          <div id="homelink">熊鑫的美好生活</div>
+        </a>
+      </div>
+      <div id="menu-list">
+        <ul>
+        
+        
+          
+            <li>
+          
+            <a href="/">首页</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/archives">文章</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/tags">标签</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="/categories">分类</a>
+            
+          </li>
+        
+          
+            <li>
+          
+            <a href="https://github.com/313183373">Github</a>
+            
+          </li>
+        
+        </ul>
+      </div>
+      <div id="show-menu">
+        <button>Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="content-outer">
+    <div id="content-inner">
+      <div id="Jihuajiyi" style="display:none"></div>
+      
+      
+  <article id="post">
+    <h1>ReactRouter例子ModalGallery引发的问题——二</h1>
+    <p class="page-title-sub">
+      <span id = "post-title-date">Created at 2018-10-18</span>
+      
+        <span id = "post-title-updated">Updated at 2018-10-18</span>
+      
+      
+      
+      <span id = "post-title-tags">
+      Tag
+      
+      
+        
+        
+        <a href="/tags/React/">React</a>
+      
+        
+          /
+        
+        
+        <a href="/tags/ReactRouter/">ReactRouter</a>
+      
+      </span>
+      
+    </p>
+    
+    <p>在上一篇文章中，有一些东西还没有讲清楚</p>
+<ol>
+<li>为什么使用组件的属性而不是状态来存储<code>previousLocation</code></li>
+<li><code>componentWillUpdate</code>方法已经是官方不推荐使用的生命周期了，在下一个大版本可能会被移除掉</li>
+</ol>
+<p>针对第一点，我认为完全是可以使用状态的，而且状态也有好处，就是他会触发更新组件，如果它会触发更新，我们也就不需要使用<code>componentWillUpdate</code>生命周期了，我们在<code>componentDidUpdate</code>生命周期中做存储<code>previousLocation</code>的工作，然后在<strong>一定的条件下</strong>使用<code>setState</code>触发更新，注意在一定的条件下，因为<code>setState</code>会触发<code>componentDidUpdate</code>,如果我们无条件<code>setState</code>，那就是一个死循环。这样的话，第二点也自然而然的解决了，我们来做一下修改吧</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">App</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">    state = &#123;</span><br><span class="line">        previousLocation: <span class="literal">null</span>,</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    componentDidUpdate(prevProps) &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;location, history&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="keyword">const</span> &#123;previousLocation&#125; = <span class="keyword">this</span>.state;</span><br><span class="line">        <span class="comment">// set previousLocation if props.location is not modal</span></span><br><span class="line">        <span class="keyword">if</span> (</span><br><span class="line">            history.action !== <span class="string">"POP"</span> &amp;&amp;</span><br><span class="line">            (!prevProps.location.state || !prevProps.location.state.fromGallery) &amp;&amp;</span><br><span class="line">            location.state &amp;&amp; location.state.fromGallery &amp;&amp;</span><br><span class="line">            ((previousLocation &amp;&amp; previousLocation.key !== prevProps.location.key) || !previousLocation)</span><br><span class="line">        ) &#123;</span><br><span class="line">            <span class="keyword">this</span>.setState(&#123;</span><br><span class="line">                previousLocation: prevProps.location,</span><br><span class="line">            &#125;);</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">'update previousLocation'</span>, prevProps.location);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="keyword">const</span> &#123;location&#125; = <span class="keyword">this</span>.props;</span><br><span class="line">        <span class="keyword">const</span> isModal = !!(</span><br><span class="line">            location.state &amp;&amp;</span><br><span class="line">            location.state.fromGallery &amp;&amp;</span><br><span class="line">            <span class="keyword">this</span>.state.previousLocation</span><br><span class="line">        ); <span class="comment">// not initial render</span></span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            &lt;div&gt;</span><br><span class="line">                &lt;Switch</span><br><span class="line">                    location=&#123;isModal ? <span class="keyword">this</span>.state.previousLocation : location&#125;&gt;</span><br><span class="line">                    &lt;Route exact path=<span class="string">'/'</span> component=&#123;Home&#125;/&gt;</span><br><span class="line">                    &lt;Route path=<span class="string">'/img/:id'</span> component=&#123;Img&#125;/&gt;</span><br><span class="line">                    &lt;Route path=<span class="string">'/gallery'</span> component=&#123;Gallery&#125;/&gt;</span><br><span class="line">                    &lt;Route path=<span class="string">'/gallery2'</span> component=&#123;GalleryTwo&#125;/&gt;</span><br><span class="line">                &lt;<span class="regexp">/Switch&gt;</span></span><br><span class="line"><span class="regexp">                &lt;Route path='/img</span><span class="regexp">/:id'</span></span><br><span class="line"><span class="regexp">                       component=&#123;isModal ? Modal : null&#125;/</span>&gt;</span><br><span class="line">            &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">        )</span></span><br><span class="line"><span class="regexp">    &#125;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>注意我们这里把<code>previousLocation</code>存储到<code>state</code>中了，然后使用了<code>componentDidUpdate</code>生命周期，并修改了相应的条件判断，这样就完美了！</p>
+<p>最后我们还是强调一点，就是在<code>componentDidUpdate</code>生命周期中一定要小心使用<code>setState</code>，必须得有条件😂</p>
+
+  </article>
+  <div class="random-toc-area">
+  <button class="btn-hide-toc btn-hide-toc-show" style="display: none" onclick="TOCToggle()">Show TOC</button>
+  <button class="btn-hide-toc btn-hide-toc-hide" onclick="TOCToggle()">Hide TOC</button>
+  <div class="random-toc">
+    <h2>Table of Content</h2>
+    
+  </div>
+</div>
+
+  
+<nav id="pagination">
+  
+
+  
+
+  
+    <a href="/2018/10/18/ReactRouter例子ModalGallery引发的问题/" class="next">Next post ReactRouter例子ModalGallery引发的问题 &rarr;</a>
+  
+</nav>
+
+  <!-- JiaThis Button BEGIN -->
+
+<!-- JiaThis Button END -->
+
+
+      
+      
+      
+      <!-- 来必力City版安装代码 -->
+<div id="lv-container" data-id="city" data-uid="MTAyMC8zODM1Ny8xNDg4NQ==">
+	<script type="text/javascript">
+   (function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+	</script>
+<noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+</div>
+<!-- City版安装代码已完成 -->
+      
+      <script src="http://open.iciba.com/huaci/huaci.js" ></script>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<div id="user-card">
+  <div class="center-field">
+    <img class="avatar" src="https://ws1.sinaimg.cn/large/006tKfTcgy1ft9vmze9s2j30k00hfdh3.jpg">
+    <p id="description"></p>
+    <ul class="social-icon">
+  
+  
+</ul>
+  </div>
+</div>
+
+
+<div id="btn-view">Hide</div>
+
+<script>
+// is trigger analytics / tongji script
+var isIgnoreHost = false;
+
+if(window && window.location && window.location.host) {
+  isIgnoreHost = ["localhost","127.0.0.1"].some(function(address){
+    return 0 === window.location.host.indexOf(address);
+  });
+}
+
+var isTriggerAnalytics = !( true && isIgnoreHost );
+
+</script>
+
+
+
+
+  
+  
+    <script src="/js/jquery-2.2.3.min.js"></script>
+  
+    <script src="/js/vegas.min.js"></script>
+  
+    <script src="/js/random.js"></script>
+  
+    <script src="/js/highlight.pack.js"></script>
+  
+    <script src="/js/jquery.mousewheel.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox.pack.js"></script>
+  
+    <script src="/js/jquery.fancybox-thumbs.js"></script>
+  
+    <script src="/js/plyr.js"></script>
+  
+
+<script>
+
+  // fancybox
+  var backgroundImages = [];
+  
+  $('#post').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox') || $(this).parent().hasClass('fancybox-thumb')) return;
+      var alt = this.alt || this.title;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'post' + i);
+    });
+  });
+  $(".fancybox").fancybox();
+
+var vegasConfig = {"animation":"random","preload­Image":true,"transition":["slideLeft2","slideRight2","zoomIn","swirLeft","swirRight","flash","flash2"],"timer":true,"delay":5000,"shuffle":true,"count":10};
+var unsplashConfig = {"gravity":"north"};
+// is show background images
+var turnoffBackgroundImage = false;
+
+
+
+  turnoffBackgroundImage = true;
+
+
+var backgroundColor = "34495E";
+
+$(".fancybox-thumb").fancybox({
+  prevEffect: 'none',
+  nextEffect: 'none',
+  helpers: {
+    title: {
+      type: 'outside'
+    },
+    thumbs: {
+      width: 50,
+      height: 50
+    }
+  }
+});
+
+// show video with plyr
+$(".video-container iframe").each(function(i){
+  var url = $(this).attr('src');
+  var id = url.split('/').pop();
+  var plyrContainer = document.createElement('div');
+  plyrContainer.className = 'plyr';
+  var plyrElement = document.createElement('div');
+  plyrElement.dataset.videoId = id;
+  switch(true) {
+    case url.search('youtube.com') >= 0:
+      plyrElement.dataset.type = 'youtube';
+      break;
+    case url.search('vimeo.com') >= 0:
+      plyrElement.dataset.type = 'vimeo';
+      break;
+    default:
+      return;
+  };
+  plyrContainer.appendChild(plyrElement);
+  $(this).parent().html(plyrContainer);
+});
+plyr.setup('.plyr', {iconUrl: '/css/sprite.svg'});
+</script>
+</body>
+</html>
+
